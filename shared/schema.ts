@@ -10,7 +10,7 @@ export const validations = pgTable("validations", {
   postcode: text("postcode").notNull(),
   isValid: boolean("is_valid").notNull(),
   details: jsonb("details"), // Store API response or error info
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const insertValidationSchema = createInsertSchema(validations).pick({
