@@ -2,6 +2,8 @@ import { AddressForm } from "@/components/address-form";
 import { ValidationHistory } from "@/components/validation-history";
 import { useValidations } from "@/hooks/use-validations";
 import { motion } from "framer-motion";
+import { ClipboardEdit, Search, ShieldCheck, FileText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
   const { data: validations = [], isLoading } = useValidations();
@@ -75,6 +77,61 @@ export default function Home() {
             <ValidationHistory validations={validations} isLoading={isLoading} />
           </motion.div>
         </div>
+
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-16"
+          data-testid="section-how-it-works"
+        >
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">How it Works</h2>
+          <p className="text-sm text-slate-500 text-center mb-8 max-w-lg mx-auto">
+            Your address is checked against two independent official data sources for reliable verification.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                step: 1,
+                icon: ClipboardEdit,
+                title: "Enter your address",
+                description: "Type in the street address, town, and postcode you want to verify.",
+              },
+              {
+                step: 2,
+                icon: Search,
+                title: "Cross-reference two sources",
+                description: "We look up your postcode with Ideal Postcodes (Royal Mail PAF data) and open address records published by UK local authorities.",
+              },
+              {
+                step: 3,
+                icon: ShieldCheck,
+                title: "Fuzzy matching & scoring",
+                description: "Each source compares your input against known addresses using smart matching that handles abbreviations, spelling differences, and formatting.",
+              },
+              {
+                step: 4,
+                icon: FileText,
+                title: "Get your results",
+                description: "You receive a confidence score from each source, a clear pass or fail verdict, and suggestions for close matches if the exact address isn't found.",
+              },
+            ].map((item) => (
+              <Card key={item.step} className="overflow-visible relative">
+                <CardContent className="pt-6 pb-5 px-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 text-primary shrink-0">
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-semibold text-primary tracking-wide uppercase">Step {item.step}</span>
+                  </div>
+                  <h3 className="font-semibold text-slate-900 mb-1">{item.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.section>
 
         <footer className="mt-20 border-t border-slate-200 pt-8 text-center text-sm text-slate-400">
           <p>© 2024 UK Address Validator. All data processed securely.</p>
