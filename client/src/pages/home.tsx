@@ -2,7 +2,7 @@ import { AddressForm } from "@/components/address-form";
 import { ValidationHistory } from "@/components/validation-history";
 import { useValidations } from "@/hooks/use-validations";
 import { motion } from "framer-motion";
-import { ClipboardEdit, Search, ShieldCheck, FileText } from "lucide-react";
+import { ClipboardEdit, Search, ShieldCheck, FileText, Scale, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
@@ -133,8 +133,97 @@ export default function Home() {
           </div>
         </motion.section>
 
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-12"
+          data-testid="section-data-licensing"
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Scale className="h-5 w-5 text-slate-400" />
+            <h2 className="text-2xl font-bold text-slate-900 text-center">Data Sources & Licensing</h2>
+          </div>
+          <p className="text-sm text-slate-500 text-center mb-8 max-w-lg mx-auto">
+            This service uses two officially licensed data sources. All data is used in compliance with the terms below.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="overflow-visible">
+              <CardContent className="pt-6 pb-5 px-6">
+                <h3 className="font-semibold text-slate-900 mb-1">Ideal Postcodes</h3>
+                <p className="text-xs font-medium text-slate-400 mb-3">Royal Mail Postcode Address File (PAF)</p>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                  Address lookups are performed via the Ideal Postcodes API, which provides access to Royal Mail's
+                  Postcode Address File. Data is used on a per-lookup basis for address verification only and is
+                  not stored or redistributed as a standalone database.
+                </p>
+                <div className="bg-slate-50 rounded-md p-3 mb-4">
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Contains Royal Mail data &copy; Royal Mail copyright and database right.
+                    Contains Ordnance Survey data &copy; Crown copyright and database right.
+                  </p>
+                </div>
+                <a
+                  href="https://ideal-postcodes.co.uk/termsandconditions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary font-medium"
+                  data-testid="link-ideal-postcodes-terms"
+                >
+                  Ideal Postcodes Terms of Service
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-visible">
+              <CardContent className="pt-6 pb-5 px-6">
+                <h3 className="font-semibold text-slate-900 mb-1">Open Address Data</h3>
+                <p className="text-xs font-medium text-slate-400 mb-3">UK Local Authority Council Tax Address Lists</p>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                  Address records are sourced from Council Tax address lists published as open data by UK local
+                  authorities. These datasets are released under the Open Government Licence, which permits free
+                  re-use for commercial and non-commercial purposes.
+                </p>
+                <div className="bg-slate-50 rounded-md p-3 mb-4">
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Contains public sector information licensed under the
+                    {" "}
+                    <a
+                      href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Open Government Licence v3.0
+                    </a>.
+                    Data compiled by Datadaptive from individual council releases.
+                  </p>
+                </div>
+                <a
+                  href="https://www.datadaptive.com/addr/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary font-medium"
+                  data-testid="link-datadaptive"
+                >
+                  View source datasets at Datadaptive
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.section>
+
         <footer className="mt-20 border-t border-slate-200 pt-8 text-center text-sm text-slate-400">
-          <p>© 2024 UK Address Validator. All data processed securely.</p>
+          <p>
+            &copy; {new Date().getFullYear()} UK Address Validator. All data processed securely.
+          </p>
+          <p className="mt-1 text-xs">
+            Contains Royal Mail data &copy; Royal Mail copyright and database right.
+            Contains public sector information licensed under the Open Government Licence v3.0.
+          </p>
         </footer>
       </div>
     </div>
