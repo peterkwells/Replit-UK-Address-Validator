@@ -12,9 +12,9 @@ export class DatabaseStorage implements IStorage {
     const [record] = await db
       .insert(validations)
       .values({
-        line1: validation.line1,
-        line2: validation.line2,
-        town: validation.town,
+        line1: validation.line1 || null,
+        line2: validation.line2 || null,
+        town: validation.town || null,
         postcode: validation.postcode,
         isValid: validation.isValid,
         details: validation.details,
