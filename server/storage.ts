@@ -9,13 +9,15 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async createValidation(validation: InsertValidation & { isValid: boolean; details: any }): Promise<Validation> {
-    const { isValid, details, ...rest } = validation;
     const [record] = await db
       .insert(validations)
       .values({
-        ...rest,
-        isValid,
-        details,
+        line1: validation.line1,
+        line2: validation.line2,
+        town: validation.town,
+        postcode: validation.postcode,
+        isValid: validation.isValid,
+        details: validation.details,
       })
       .returning();
     return record;
