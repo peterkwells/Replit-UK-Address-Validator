@@ -16,7 +16,7 @@ export class DatabaseStorage implements IStorage {
         line2: validation.line2 || null,
         town: validation.town || null,
         postcode: validation.postcode,
-        isValid: validation.isValid,
+        isValid: !!validation.isValid,
         details: validation.details,
       })
       .returning();
