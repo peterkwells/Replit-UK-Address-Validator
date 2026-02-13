@@ -241,7 +241,7 @@ export function AddressForm() {
 
           <div className="mt-8 pt-6 border-t border-dashed">
             <p className="text-xs text-center text-muted-foreground">
-              Validates against Royal Mail Postcode Address File and Council Tax open address data.
+              Validates against Ideal Postcodes and open addresses released by UK local authorities.
             </p>
           </div>
         </CardContent>
@@ -274,13 +274,13 @@ export function AddressForm() {
                 <div className="space-y-3">
                   <SourceResult
                     source="royalMail"
-                    label="Royal Mail (PAF)"
+                    label="Ideal Postcodes"
                     icon={Mail}
                     result={details?.royalMail}
                   />
                   <SourceResult
                     source="councilTax"
-                    label="Council Tax Records"
+                    label="Open addresses released by UK local authorities"
                     icon={Database}
                     result={details?.councilTax}
                   />
