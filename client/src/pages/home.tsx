@@ -203,6 +203,47 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="overflow-visible mt-4">
+            <CardContent className="pt-6 pb-5 px-6">
+              <h3 className="font-semibold text-slate-900 mb-1">OGL Exemptions & Data Privacy</h3>
+              <p className="text-xs font-medium text-slate-400 mb-3">How we handle licence exemptions</p>
+              <div className="space-y-3 text-sm text-slate-500 leading-relaxed">
+                <p>
+                  The Open Government Licence excludes certain categories of information from re-use.
+                  We have reviewed the exemptions that could apply to the council address data used by this service:
+                </p>
+                <div className="space-y-2">
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-slate-700 shrink-0">Personal data.</span>
+                    <span>
+                      The OGL does not cover personal data. The council datasets used here contain
+                      property addresses only &mdash; no names, occupants, account numbers, or council tax
+                      payment details are included. This service only checks whether an address exists;
+                      it does not store or display any personal information.
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-slate-700 shrink-0">Third-party rights.</span>
+                    <span>
+                      The OGL does not cover intellectual property the council is not authorised to license.
+                      Postcodes originate from Royal Mail, but in this context they are administrative
+                      references maintained independently by each council. The datasets were published as
+                      open data by the councils themselves, indicating they have assessed and cleared these rights.
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-slate-700 shrink-0">Non-endorsement.</span>
+                    <span>
+                      Use of this data does not imply official status or endorsement by any council or
+                      government body. Results should be treated as indicative and not as an official
+                      confirmation of address status.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.section>
 
         <motion.section
