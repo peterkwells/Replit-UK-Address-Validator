@@ -4,19 +4,8 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 
-function normalizeString(s: string): string {
+function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function matchScore(userInput: string, candidate: string): number {
-  const a = normalizeString(userInput);
-  const b = normalizeString(candidate);
-  if (a === b) return 1;
-  if (b.includes(a) || a.includes(b)) return 0.8;
-  const aWords = a.split(' ');
-  const bWords = b.split(' ');
-  const matchedWords = aWords.filter(w => bWords.some(bw => bw.includes(w) || w.includes(bw)));
-  return matchedWords.length / Math.max(aWords.length, 1);
 }
 
 function findBestMatch(
@@ -25,16 +14,37 @@ function findBestMatch(
   userTown: string,
   addresses: any[]
 ): { matched: boolean; bestMatch: any; score: number; suggestions: string[] } {
+  const userFull = normalize([userLine1, userLine2].filter(Boolean).join(' '));
+  const userTownNorm = normalize(userTown);
+
+  if (!userFull) {
+    const suggestions = addresses
+      .slice(0, 5)
+      .map((a: any) => [a.line_1, a.line_2, a.post_town, a.postcode].filter(Boolean).join(', '));
+    return { matched: false, bestMatch: null, score: 0, suggestions };
+  }
+
   let bestScore = 0;
   let bestMatch: any = null;
 
   for (const addr of addresses) {
-    const candidateLine = [addr.line_1, addr.line_2, addr.line_3].filter(Boolean).join(' ');
-    const userLine = [userLine1, userLine2].filter(Boolean).join(' ');
+    const candidateFull = normalize([addr.line_1, addr.line_2, addr.line_3].filter(Boolean).join(' '));
+    const candidateTown = normalize(addr.post_town || '');
 
-    const lineScore = matchScore(userLine, candidateLine);
-    const townScore = userTown
-      ? matchScore(userTown, addr.post_town || '')
+    let lineScore = 0;
+    if (userFull === candidateFull) {
+      lineScore = 1;
+    } else if (userFull.length > 0 && (candidateFull.includes(userFull) || userFull.includes(candidateFull))) {
+      lineScore = 0.95;
+    } else {
+      const userWords = userFull.split(' ');
+      const candWords = candidateFull.split(' ');
+      const exactMatches = userWords.filter(w => candWords.includes(w));
+      lineScore = exactMatches.length / Math.max(userWords.length, candWords.length);
+    }
+
+    const townScore = userTownNorm
+      ? (userTownNorm === candidateTown ? 1 : 0)
       : 0.5;
 
     const totalScore = (lineScore * 0.7) + (townScore * 0.3);
@@ -50,7 +60,7 @@ function findBestMatch(
     .map((a: any) => [a.line_1, a.line_2, a.post_town, a.postcode].filter(Boolean).join(', '));
 
   return {
-    matched: bestScore >= 0.6,
+    matched: bestScore >= 0.85,
     bestMatch,
     score: bestScore,
     suggestions,

@@ -195,10 +195,27 @@ export function AddressForm() {
                       </div>
                     )}
 
+                    {!lastResult.isValid && details?.matchedAddress && (
+                      <div className="mt-3 p-3 rounded-md bg-white/80 border border-amber-200">
+                        <p className="text-xs font-medium text-amber-700 mb-1 flex items-center gap-1">
+                          <Info className="h-3 w-3" /> Closest match found:
+                        </p>
+                        <p className="text-sm text-foreground font-medium">
+                          {[
+                            details.matchedAddress.line_1,
+                            details.matchedAddress.line_2,
+                            details.matchedAddress.line_3,
+                            details.matchedAddress.post_town,
+                            details.matchedAddress.postcode,
+                          ].filter(Boolean).join(', ')}
+                        </p>
+                      </div>
+                    )}
+
                     {!lastResult.isValid && details?.suggestions && details.suggestions.length > 0 && (
                       <div className="mt-3 p-3 rounded-md bg-white/80 border border-red-200">
                         <p className="text-xs font-medium text-red-700 mb-2">
-                          Did you mean one of these addresses?
+                          Addresses at this postcode:
                         </p>
                         <ul className="space-y-1">
                           {details.suggestions.map((s: string, i: number) => (
