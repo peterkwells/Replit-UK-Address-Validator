@@ -58,25 +58,14 @@ export default function Home() {
           </motion.div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="lg:col-span-7 h-full"
-          >
-            <AddressForm />
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="lg:col-span-5 h-full"
-          >
-            <ValidationHistory validations={validations} isLoading={isLoading} />
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="max-w-2xl mx-auto"
+        >
+          <AddressForm />
+        </motion.div>
 
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -214,6 +203,15 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="mt-12"
+        >
+          <ValidationHistory validations={validations} isLoading={isLoading} />
         </motion.section>
 
         <footer className="mt-20 border-t border-slate-200 pt-8 text-center text-sm text-slate-400">
