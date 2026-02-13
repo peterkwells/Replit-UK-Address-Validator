@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CheckCircle2, XCircle, MapPin, ExternalLink, Search } from "lucide-react";
+import { CheckCircle2, XCircle, MapPin, Search, Mail, Database } from "lucide-react";
 import { Validation } from "@shared/schema";
 import {
   Card,
@@ -117,17 +117,24 @@ export function ValidationHistory({ validations, isLoading }: ValidationHistoryP
                       </div>
                     </div>
                     
-                    {v.isValid && (v.details as any)?.latitude && (
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${(v.details as any).latitude},${(v.details as any).longitude}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-blue-50 rounded-lg text-blue-600"
-                        title="View on Google Maps"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
+                    <div className="flex flex-col gap-1 items-end flex-shrink-0">
+                      {(v.details as any)?.royalMail && (
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <span className={`text-xs ${(v.details as any).royalMail.matched ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {(v.details as any).royalMail.matched ? 'Pass' : 'Fail'}
+                          </span>
+                        </div>
+                      )}
+                      {(v.details as any)?.councilTax && (
+                        <div className="flex items-center gap-1">
+                          <Database className="h-3 w-3 text-muted-foreground" />
+                          <span className={`text-xs ${(v.details as any).councilTax.notCovered ? 'text-muted-foreground' : (v.details as any).councilTax.matched ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {(v.details as any).councilTax.notCovered ? 'N/A' : (v.details as any).councilTax.matched ? 'Pass' : 'Fail'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))

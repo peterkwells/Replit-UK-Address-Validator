@@ -1,10 +1,12 @@
 import { db } from "./db";
-import { validations, type InsertValidation, type Validation } from "@shared/schema";
-import { desc } from "drizzle-orm";
+import { validations, councilTaxAddresses, type InsertValidation, type Validation, type CouncilTaxAddress } from "@shared/schema";
+import { desc, eq } from "drizzle-orm";
 
 export interface IStorage {
   createValidation(validation: InsertValidation & { isValid: boolean; details: any }): Promise<Validation>;
   getValidations(): Promise<Validation[]>;
+  getCouncilTaxAddresses(postcode: string): Promise<CouncilTaxAddress[]>;
+  getCouncilTaxCount(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -29,6 +31,19 @@ export class DatabaseStorage implements IStorage {
       .from(validations)
       .orderBy(desc(validations.createdAt))
       .limit(50);
+  }
+
+  async getCouncilTaxAddresses(postcode: string): Promise<CouncilTaxAddress[]> {
+    const normalized = postcode.toUpperCase().replace(/\s+/g, ' ').trim();
+    return await db
+      .select()
+      .from(councilTaxAddresses)
+      .where(eq(councilTaxAddresses.postcode, normalized));
+  }
+
+  async getCouncilTaxCount(): Promise<number> {
+    const result = await db.select().from(councilTaxAddresses).limit(1);
+    return result.length;
   }
 }
 

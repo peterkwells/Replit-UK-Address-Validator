@@ -1,6 +1,22 @@
-import { pgTable, text, serial, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const councilTaxAddresses = pgTable("council_tax_addresses", {
+  id: serial("id").primaryKey(),
+  council: text("council").notNull(),
+  addr1: text("addr1"),
+  addr2: text("addr2"),
+  addr3: text("addr3"),
+  addr4: text("addr4"),
+  addr5: text("addr5"),
+  postcode: text("postcode").notNull(),
+  uprn: text("uprn"),
+}, (table) => [
+  index("idx_ct_postcode").on(table.postcode),
+]);
+
+export type CouncilTaxAddress = typeof councilTaxAddresses.$inferSelect;
 
 export const validations = pgTable("validations", {
   id: serial("id").primaryKey(),

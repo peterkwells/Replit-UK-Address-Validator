@@ -13,9 +13,103 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCreateValidation } from "@/hooks/use-validations";
-import { Loader2, Search, MapPinCheckInside, Building2, CheckCircle2, XCircle, Info } from "lucide-react";
+import { Loader2, Search, MapPinCheckInside, Building2, CheckCircle2, XCircle, Info, AlertTriangle, Database, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+
+function SourceResult({ source, label, icon: Icon, result }: {
+  source: string;
+  label: string;
+  icon: any;
+  result: any;
+}) {
+  if (!result) return null;
+
+  const isNotCovered = result.notCovered;
+  const isMatched = result.matched;
+  const hasError = result.error;
+
+  let statusColor = "border-muted bg-muted/20";
+  let statusIcon = <AlertTriangle className="h-5 w-5 text-muted-foreground" />;
+  let statusText = "Not available";
+
+  if (isNotCovered) {
+    statusColor = "border-muted bg-muted/20";
+    statusIcon = <AlertTriangle className="h-5 w-5 text-muted-foreground" />;
+    statusText = "Postcode not covered by this dataset";
+  } else if (hasError) {
+    statusColor = "border-red-200 bg-red-50/50";
+    statusIcon = <XCircle className="h-5 w-5 text-red-500" />;
+    statusText = result.error;
+  } else if (isMatched) {
+    statusColor = "border-emerald-200 bg-emerald-50/50";
+    statusIcon = <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
+    statusText = "Address found";
+  } else {
+    statusColor = "border-red-200 bg-red-50/50";
+    statusIcon = <XCircle className="h-5 w-5 text-red-500" />;
+    statusText = "Address not found";
+  }
+
+  const matchedAddr = result.matchedAddress;
+  const formatAddress = () => {
+    if (!matchedAddr) return null;
+    if (source === "royalMail") {
+      return [matchedAddr.line_1, matchedAddr.line_2, matchedAddr.line_3, matchedAddr.post_town, matchedAddr.postcode].filter(Boolean).join(', ');
+    }
+    return [matchedAddr.addr1, matchedAddr.addr2, matchedAddr.addr3, matchedAddr.postcode].filter(Boolean).join(', ');
+  };
+
+  return (
+    <div className={`rounded-md border p-4 ${statusColor}`} data-testid={`result-${source}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold">{label}</span>
+            {result.council && (
+              <span className="text-xs text-muted-foreground">({result.council})</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-1">
+            {statusIcon}
+            <span className="text-sm">{statusText}</span>
+            {result.score !== undefined && !isNotCovered && !hasError && (
+              <span className="text-xs text-muted-foreground ml-auto">
+                {result.score}% match
+              </span>
+            )}
+          </div>
+
+          {matchedAddr && (
+            <div className="mt-2 p-2 rounded bg-white/60 border border-inherit">
+              <p className="text-xs text-muted-foreground mb-0.5">
+                {isMatched ? "Matched address:" : "Closest match:"}
+              </p>
+              <p className="text-sm font-medium">{formatAddress()}</p>
+            </div>
+          )}
+
+          {!isMatched && !isNotCovered && !hasError && result.suggestions && result.suggestions.length > 0 && (
+            <details className="mt-2">
+              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                View {result.totalAddresses || result.suggestions.length} addresses at this postcode
+              </summary>
+              <ul className="mt-1 space-y-0.5 pl-2">
+                {result.suggestions.map((s: string, i: number) => (
+                  <li key={i} className="text-xs text-muted-foreground">{s}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AddressForm() {
   const mutation = useCreateValidation();
@@ -56,7 +150,7 @@ export function AddressForm() {
           </div>
           <CardTitle className="text-3xl">Validate Address</CardTitle>
           <CardDescription className="text-base">
-            Enter address details below to verify against the Royal Mail address database.
+            Enter address details below to verify against two official sources.
           </CardDescription>
         </CardHeader>
 
@@ -147,7 +241,7 @@ export function AddressForm() {
 
           <div className="mt-8 pt-6 border-t border-dashed">
             <p className="text-xs text-center text-muted-foreground">
-              Validates full addresses against the Royal Mail Postcode Address File via Ideal Postcodes.
+              Validates against Royal Mail Postcode Address File and Council Tax open address data.
             </p>
           </div>
         </CardContent>
@@ -163,7 +257,7 @@ export function AddressForm() {
           >
             <Card className={`overflow-visible border-2 ${lastResult.isValid ? 'border-emerald-200 bg-emerald-50/50' : 'border-red-200 bg-red-50/50'}`}>
               <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4 mb-4">
                   <div className={`rounded-full p-2 ${lastResult.isValid ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                     {lastResult.isValid ? <CheckCircle2 className="h-6 w-6" /> : <XCircle className="h-6 w-6" />}
                   </div>
@@ -171,66 +265,25 @@ export function AddressForm() {
                     <h3 className={`text-lg font-semibold ${lastResult.isValid ? 'text-emerald-800' : 'text-red-800'}`}>
                       {lastResult.isValid ? 'Address Verified' : 'Address Not Found'}
                     </h3>
-
-                    {details?.matchScore !== undefined && (
-                      <p className={`text-sm mt-1 ${lastResult.isValid ? 'text-emerald-600' : 'text-red-600'}`}>
-                        Match confidence: {details.matchScore}%
-                      </p>
-                    )}
-
-                    {lastResult.isValid && details?.matchedAddress && (
-                      <div className="mt-3 p-3 rounded-md bg-white/80 border border-emerald-200">
-                        <p className="text-xs font-medium text-emerald-700 mb-1 flex items-center gap-1">
-                          <Info className="h-3 w-3" /> Matched to official address:
-                        </p>
-                        <p className="text-sm text-foreground font-medium">
-                          {[
-                            details.matchedAddress.line_1,
-                            details.matchedAddress.line_2,
-                            details.matchedAddress.line_3,
-                            details.matchedAddress.post_town,
-                            details.matchedAddress.postcode,
-                          ].filter(Boolean).join(', ')}
-                        </p>
-                      </div>
-                    )}
-
-                    {!lastResult.isValid && details?.matchedAddress && (
-                      <div className="mt-3 p-3 rounded-md bg-white/80 border border-amber-200">
-                        <p className="text-xs font-medium text-amber-700 mb-1 flex items-center gap-1">
-                          <Info className="h-3 w-3" /> Closest match found:
-                        </p>
-                        <p className="text-sm text-foreground font-medium">
-                          {[
-                            details.matchedAddress.line_1,
-                            details.matchedAddress.line_2,
-                            details.matchedAddress.line_3,
-                            details.matchedAddress.post_town,
-                            details.matchedAddress.postcode,
-                          ].filter(Boolean).join(', ')}
-                        </p>
-                      </div>
-                    )}
-
-                    {!lastResult.isValid && details?.suggestions && details.suggestions.length > 0 && (
-                      <div className="mt-3 p-3 rounded-md bg-white/80 border border-red-200">
-                        <p className="text-xs font-medium text-red-700 mb-2">
-                          Addresses at this postcode:
-                        </p>
-                        <ul className="space-y-1">
-                          {details.suggestions.map((s: string, i: number) => (
-                            <li key={i} className="text-sm text-muted-foreground">
-                              {s}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {!lastResult.isValid && details?.error && (
-                      <p className="text-sm text-red-600 mt-2">{details.error}</p>
-                    )}
+                    <p className={`text-sm ${lastResult.isValid ? 'text-emerald-600' : 'text-red-600'}`}>
+                      Checked against two data sources
+                    </p>
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  <SourceResult
+                    source="royalMail"
+                    label="Royal Mail (PAF)"
+                    icon={Mail}
+                    result={details?.royalMail}
+                  />
+                  <SourceResult
+                    source="councilTax"
+                    label="Council Tax Records"
+                    icon={Database}
+                    result={details?.councilTax}
+                  />
                 </div>
               </CardContent>
             </Card>
