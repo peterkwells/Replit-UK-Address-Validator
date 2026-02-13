@@ -1,38 +1,28 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import { validations, type InsertValidation, type Validation } from "@shared/schema";
+import { desc } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createValidation(validation: InsertValidation & { isValid: boolean; details: any }): Promise<Validation>;
+  getValidations(): Promise<Validation[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async createValidation(validation: InsertValidation & { isValid: boolean; details: any }): Promise<Validation> {
+    const [record] = await db
+      .insert(validations)
+      .values(validation)
+      .returning();
+    return record;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async getValidations(): Promise<Validation[]> {
+    return await db
+      .select()
+      .from(validations)
+      .orderBy(desc(validations.createdAt))
+      .limit(50);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
