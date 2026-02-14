@@ -41,7 +41,7 @@ Preferred communication style: Simple, everyday language.
 - **Tables**:
   - `validations` — stores address validation results with fields: `id` (serial PK), `line1`, `line2`, `town`, `postcode` (required), `is_valid` (boolean), `details` (JSONB for API response data), `created_at` (timestamptz)
   - `council_tax_addresses` — open data address records from 24 UK local authorities (~3.2M records), indexed on postcode
-  - `price_paid_transactions` — HM Land Registry Price Paid Data (2023-2025, ~2M records), indexed on postcode. Stores transaction ID, price, transfer date, property type, address components (SAON, PAON, street, locality, town, district, county)
+  - `price_paid_transactions` — HM Land Registry Price Paid Data (2013-2025, ~12.2M records), indexed on postcode. Stores transaction ID, price, transfer date, property type, address components (SAON, PAON, street, locality, town, district, county)
 
 ### Key API Endpoints
 - `POST /api/validations` — Validates an address and saves the result. Input: `{ line1?, line2?, town?, postcode }`. Returns the saved validation record.

@@ -206,7 +206,7 @@ export default function Home() {
             <Card className="overflow-visible">
               <CardContent className="pt-6 pb-5 px-6">
                 <h3 className="font-semibold text-slate-900 mb-1">HM Land Registry</h3>
-                <p className="text-xs font-medium text-slate-400 mb-3">Price Paid Data (2023-2025)</p>
+                <p className="text-xs font-medium text-slate-400 mb-3">Price Paid Data (2013-2025)</p>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Property sale records are sourced from HM Land Registry's Price Paid Data, covering
                   residential property transactions in England and Wales. This data confirms whether a

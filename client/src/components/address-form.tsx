@@ -118,8 +118,8 @@ function SourceResult({ source, label, icon: Icon, result }: {
 export function AddressForm() {
   const mutation = useCreateValidation();
   const [lastResult, setLastResult] = useState<Validation | null>(null);
-  const [useIdealPostcodes, setUseIdealPostcodes] = useState(true);
-  const [useOpenAddresses, setUseOpenAddresses] = useState(true);
+  const [useIdealPostcodes, setUseIdealPostcodes] = useState(false);
+  const [useOpenAddresses, setUseOpenAddresses] = useState(false);
   const [usePricePaid, setUsePricePaid] = useState(false);
 
   const form = useForm<InsertValidation>({
@@ -288,7 +288,7 @@ export function AddressForm() {
                         <Landmark className="h-3.5 w-3.5 text-primary shrink-0" />
                         <span className="text-sm font-medium">HM Land Registry</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Property sale history (2023-2025)</p>
+                      <p className="text-xs text-muted-foreground">Property sale history (2013-2025)</p>
                       <span className="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1">Free</span>
                     </div>
                   </label>
