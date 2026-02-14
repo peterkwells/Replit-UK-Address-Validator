@@ -20,12 +20,19 @@ export function useValidations() {
   });
 }
 
+export type ValidationRequest = InsertValidation & {
+  sources?: {
+    idealPostcodes: boolean;
+    openAddresses: boolean;
+  };
+};
+
 export function useCreateValidation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: InsertValidation) => {
+    mutationFn: async (data: ValidationRequest) => {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

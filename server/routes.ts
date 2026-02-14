@@ -141,23 +141,36 @@ export async function registerRoutes(
 
   app.post(api.validations.create.path, async (req, res) => {
     try {
-      const input = api.validations.create.input.parse(req.body);
+      const { sources, ...addressFields } = req.body;
+      const input = api.validations.create.input.parse(addressFields);
+
+      const useIdealPostcodes = sources?.idealPostcodes !== false;
+      const useOpenAddresses = sources?.openAddresses !== false;
+
+      if (!useIdealPostcodes && !useOpenAddresses) {
+        return res.status(400).json({ message: "At least one data source must be selected" });
+      }
 
       const apiKey = process.env.IDEAL_POSTCODES_API_KEY;
-      if (!apiKey) {
+      if (useIdealPostcodes && !apiKey) {
         return res.status(500).json({ message: "Address lookup API key not configured" });
       }
 
       const cleanPostcode = input.postcode.replace(/\s/g, '');
-      const lookupUrl = `https://api.ideal-postcodes.co.uk/v1/postcodes/${encodeURIComponent(cleanPostcode)}?api_key=${apiKey}`;
 
       const [apiResponse, councilTaxAddresses] = await Promise.all([
-        fetch(lookupUrl).then(r => r.json()),
-        storage.getCouncilTaxAddresses(input.postcode),
+        useIdealPostcodes
+          ? fetch(`https://api.ideal-postcodes.co.uk/v1/postcodes/${encodeURIComponent(cleanPostcode)}?api_key=${apiKey}`).then(r => r.json())
+          : Promise.resolve(null),
+        useOpenAddresses
+          ? storage.getCouncilTaxAddresses(input.postcode)
+          : Promise.resolve([]),
       ]);
 
       let royalMailResult: any = null;
-      if (apiResponse.code === 4040) {
+      if (!apiResponse) {
+        royalMailResult = { skipped: true };
+      } else if (apiResponse.code === 4040) {
         royalMailResult = {
           matched: false,
           score: 0,
@@ -199,7 +212,9 @@ export async function registerRoutes(
       }
 
       let councilTaxResult: any = null;
-      if (councilTaxAddresses.length > 0) {
+      if (!useOpenAddresses) {
+        councilTaxResult = { skipped: true };
+      } else if (councilTaxAddresses.length > 0) {
         const ctResult = findBestMatchCouncilTax(
           input.line1 || '', input.line2 || '', input.town || '', councilTaxAddresses
         );
@@ -228,7 +243,9 @@ export async function registerRoutes(
         };
       }
 
-      const isValid = royalMailResult.matched;
+      const isValid = royalMailResult.skipped
+        ? (councilTaxResult.matched || false)
+        : royalMailResult.matched;
 
       const record = await storage.createValidation({
         line1: input.line1 || null,

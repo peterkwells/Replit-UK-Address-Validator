@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCreateValidation } from "@/hooks/use-validations";
+import { useCreateValidation, type ValidationRequest } from "@/hooks/use-validations";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Search, MapPinCheckInside, Building2, CheckCircle2, XCircle, Info, AlertTriangle, Database, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
@@ -23,7 +24,7 @@ function SourceResult({ source, label, icon: Icon, result }: {
   icon: any;
   result: any;
 }) {
-  if (!result) return null;
+  if (!result || result.skipped) return null;
 
   const isNotCovered = result.notCovered;
   const isMatched = result.matched;
@@ -114,6 +115,8 @@ function SourceResult({ source, label, icon: Icon, result }: {
 export function AddressForm() {
   const mutation = useCreateValidation();
   const [lastResult, setLastResult] = useState<Validation | null>(null);
+  const [useIdealPostcodes, setUseIdealPostcodes] = useState(true);
+  const [useOpenAddresses, setUseOpenAddresses] = useState(true);
 
   const form = useForm<InsertValidation>({
     resolver: zodResolver(insertValidationSchema),
@@ -127,7 +130,14 @@ export function AddressForm() {
 
   function onSubmit(data: InsertValidation) {
     setLastResult(null);
-    mutation.mutate(data, {
+    const request: ValidationRequest = {
+      ...data,
+      sources: {
+        idealPostcodes: useIdealPostcodes,
+        openAddresses: useOpenAddresses,
+      },
+    };
+    mutation.mutate(request, {
       onSuccess: (response) => {
         setLastResult(response);
         if (!response.isValid) {
@@ -136,6 +146,9 @@ export function AddressForm() {
       },
     });
   }
+
+  const neitherSelected = !useIdealPostcodes && !useOpenAddresses;
+  const estimatedCost = useIdealPostcodes ? "~2p" : "Free";
 
   const details = lastResult?.details as any;
 
@@ -218,10 +231,61 @@ export function AddressForm() {
                 />
               </div>
 
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-slate-700">Validate against</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label
+                    className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${useIdealPostcodes ? 'border-primary/40 bg-primary/5' : 'border-slate-200'}`}
+                    data-testid="toggle-ideal-postcodes"
+                  >
+                    <Checkbox
+                      checked={useIdealPostcodes}
+                      onCheckedChange={(v) => setUseIdealPostcodes(!!v)}
+                    />
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm font-medium">Ideal Postcodes</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Royal Mail PAF data</p>
+                      <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 mt-1">~2p per lookup</span>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${useOpenAddresses ? 'border-primary/40 bg-primary/5' : 'border-slate-200'}`}
+                    data-testid="toggle-open-addresses"
+                  >
+                    <Checkbox
+                      checked={useOpenAddresses}
+                      onCheckedChange={(v) => setUseOpenAddresses(!!v)}
+                    />
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Database className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm font-medium">Open Address Data</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">UK local authority records</p>
+                      <span className="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1">Free</span>
+                    </div>
+                  </label>
+                </div>
+
+                {neitherSelected && (
+                  <p className="text-xs text-red-500 font-medium" data-testid="text-source-error">Please select at least one data source.</p>
+                )}
+
+                <div className="flex items-center justify-between pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    Estimated cost: <span className="font-semibold text-slate-700">{estimatedCost}</span>
+                  </p>
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold shadow-blue-900/20 shadow-lg"
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || neitherSelected}
                 data-testid="button-validate"
               >
                 {mutation.isPending ? (
@@ -238,12 +302,6 @@ export function AddressForm() {
               </Button>
             </form>
           </Form>
-
-          <div className="mt-8 pt-6 border-t border-dashed">
-            <p className="text-xs text-center text-muted-foreground">
-              Validates against Ideal Postcodes and open addresses released by UK local authorities.
-            </p>
-          </div>
         </CardContent>
       </Card>
 
@@ -266,7 +324,9 @@ export function AddressForm() {
                       {lastResult.isValid ? 'Address Verified' : 'Address Not Found'}
                     </h3>
                     <p className={`text-sm ${lastResult.isValid ? 'text-emerald-600' : 'text-red-600'}`}>
-                      Checked against two data sources
+                      {details?.royalMail?.skipped || details?.councilTax?.skipped
+                        ? 'Checked against one data source'
+                        : 'Checked against two data sources'}
                     </p>
                   </div>
                 </div>
