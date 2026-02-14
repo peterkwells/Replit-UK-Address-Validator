@@ -18,6 +18,29 @@ export const councilTaxAddresses = pgTable("council_tax_addresses", {
 
 export type CouncilTaxAddress = typeof councilTaxAddresses.$inferSelect;
 
+export const pricePaidTransactions = pgTable("price_paid_transactions", {
+  id: serial("id").primaryKey(),
+  transactionId: text("transaction_id").notNull(),
+  price: text("price").notNull(),
+  transferDate: text("transfer_date").notNull(),
+  postcode: text("postcode").notNull(),
+  propertyType: text("property_type"),
+  oldNew: text("old_new"),
+  duration: text("duration"),
+  paon: text("paon"),
+  saon: text("saon"),
+  street: text("street"),
+  locality: text("locality"),
+  town: text("town"),
+  district: text("district"),
+  county: text("county"),
+  category: text("category"),
+}, (table) => [
+  index("idx_pp_postcode").on(table.postcode),
+]);
+
+export type PricePaidTransaction = typeof pricePaidTransactions.$inferSelect;
+
 export const validations = pgTable("validations", {
   id: serial("id").primaryKey(),
   line1: text("line1"),

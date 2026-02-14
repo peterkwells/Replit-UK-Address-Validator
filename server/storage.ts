@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { validations, councilTaxAddresses, type InsertValidation, type Validation, type CouncilTaxAddress } from "@shared/schema";
+import { validations, councilTaxAddresses, pricePaidTransactions, type InsertValidation, type Validation, type CouncilTaxAddress, type PricePaidTransaction } from "@shared/schema";
 import { desc, eq } from "drizzle-orm";
 
 export interface IStorage {
@@ -7,6 +7,7 @@ export interface IStorage {
   getValidations(): Promise<Validation[]>;
   getCouncilTaxAddresses(postcode: string): Promise<CouncilTaxAddress[]>;
   getCouncilTaxCount(): Promise<number>;
+  getPricePaidByPostcode(postcode: string): Promise<PricePaidTransaction[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -44,6 +45,14 @@ export class DatabaseStorage implements IStorage {
   async getCouncilTaxCount(): Promise<number> {
     const result = await db.select().from(councilTaxAddresses).limit(1);
     return result.length;
+  }
+
+  async getPricePaidByPostcode(postcode: string): Promise<PricePaidTransaction[]> {
+    const normalized = postcode.toUpperCase().replace(/\s+/g, ' ').trim();
+    return await db
+      .select()
+      .from(pricePaidTransactions)
+      .where(eq(pricePaidTransactions.postcode, normalized));
   }
 }
 
