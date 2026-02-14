@@ -45,7 +45,7 @@ function SourceLicense({ source }: { source: string }) {
   switch (source) {
     case "royalMail": return "Royal Mail / Ideal Postcodes (paid)";
     case "councilTax": return "Open data, OGL v3.0";
-    case "pricePaid": return "Crown copyright, OGL v3.0";
+    case "pricePaid": return "Crown copyright, OGL v3.0. Contains HM Land Registry data. Address data processed against OS MasterMap / Royal Mail PAF (re-use subject to OS and Royal Mail licence terms).";
     default: return "";
   }
 }
