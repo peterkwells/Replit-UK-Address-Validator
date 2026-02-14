@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import type { CouncilTaxAddress } from "@shared/schema";
+import type { CouncilTaxAddress, PricePaidTransaction } from "@shared/schema";
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -134,6 +134,67 @@ function findBestMatchCouncilTax(
   };
 }
 
+function findBestMatchPricePaid(
+  userLine1: string,
+  userLine2: string,
+  userTown: string,
+  transactions: PricePaidTransaction[]
+): { matched: boolean; bestMatch: PricePaidTransaction | null; score: number; suggestions: string[]; saleHistory: any[] } {
+  const userFull = normalize([userLine1, userLine2].filter(Boolean).join(' '));
+
+  if (!userFull || transactions.length === 0) {
+    return { matched: false, bestMatch: null, score: 0, suggestions: [], saleHistory: [] };
+  }
+
+  let bestScore = 0;
+  let bestMatch: PricePaidTransaction | null = null;
+
+  for (const tx of transactions) {
+    const candidateLines = [tx.saon, tx.paon, tx.street].filter(Boolean) as string[];
+    const { score } = matchAddressLines(
+      userLine1, userLine2,
+      candidateLines,
+      tx.town || undefined, userTown
+    );
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = tx;
+    }
+  }
+
+  const suggestions = transactions
+    .slice(0, 5)
+    .map((tx) => [tx.saon, tx.paon, tx.street, tx.town, tx.postcode].filter(Boolean).join(', '));
+
+  const matchedAddress = bestMatch
+    ? normalize([bestMatch.saon, bestMatch.paon, bestMatch.street].filter(Boolean).join(' '))
+    : '';
+
+  const saleHistory = bestScore >= 0.85 && bestMatch
+    ? transactions
+        .filter(tx => {
+          const txAddr = normalize([tx.saon, tx.paon, tx.street].filter(Boolean).join(' '));
+          return txAddr === matchedAddress;
+        })
+        .sort((a, b) => (b.transferDate || '').localeCompare(a.transferDate || ''))
+        .map(tx => ({
+          price: tx.price,
+          date: tx.transferDate,
+          propertyType: tx.propertyType,
+          oldNew: tx.oldNew,
+          duration: tx.duration,
+        }))
+    : [];
+
+  return {
+    matched: bestScore >= 0.85,
+    bestMatch,
+    score: bestScore,
+    suggestions,
+    saleHistory,
+  };
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -146,8 +207,9 @@ export async function registerRoutes(
 
       const useIdealPostcodes = sources?.idealPostcodes !== false;
       const useOpenAddresses = sources?.openAddresses !== false;
+      const usePricePaid = sources?.pricePaid === true;
 
-      if (!useIdealPostcodes && !useOpenAddresses) {
+      if (!useIdealPostcodes && !useOpenAddresses && !usePricePaid) {
         return res.status(400).json({ message: "At least one data source must be selected" });
       }
 
@@ -158,12 +220,15 @@ export async function registerRoutes(
 
       const cleanPostcode = input.postcode.replace(/\s/g, '');
 
-      const [apiResponse, councilTaxAddresses] = await Promise.all([
+      const [apiResponse, councilTaxAddresses, pricePaidData] = await Promise.all([
         useIdealPostcodes
           ? fetch(`https://api.ideal-postcodes.co.uk/v1/postcodes/${encodeURIComponent(cleanPostcode)}?api_key=${apiKey}`).then(r => r.json())
           : Promise.resolve(null),
         useOpenAddresses
           ? storage.getCouncilTaxAddresses(input.postcode)
+          : Promise.resolve([]),
+        usePricePaid
+          ? storage.getPricePaidByPostcode(input.postcode)
           : Promise.resolve([]),
       ]);
 
@@ -243,9 +308,50 @@ export async function registerRoutes(
         };
       }
 
-      const isValid = royalMailResult.skipped
-        ? (councilTaxResult.matched || false)
-        : royalMailResult.matched;
+      let pricePaidResult: any = null;
+      if (!usePricePaid) {
+        pricePaidResult = { skipped: true };
+      } else if (pricePaidData.length > 0) {
+        const ppResult = findBestMatchPricePaid(
+          input.line1 || '', input.line2 || '', input.town || '', pricePaidData
+        );
+        pricePaidResult = {
+          matched: ppResult.matched,
+          score: Math.round(ppResult.score * 100),
+          matchedAddress: ppResult.bestMatch ? {
+            saon: ppResult.bestMatch.saon,
+            paon: ppResult.bestMatch.paon,
+            street: ppResult.bestMatch.street,
+            town: ppResult.bestMatch.town,
+            postcode: ppResult.bestMatch.postcode,
+          } : null,
+          suggestions: ppResult.suggestions,
+          totalAddresses: pricePaidData.length,
+          saleHistory: ppResult.saleHistory,
+        };
+      } else {
+        pricePaidResult = {
+          matched: false,
+          score: 0,
+          notCovered: true,
+          matchedAddress: null,
+          suggestions: [],
+          totalAddresses: 0,
+          saleHistory: [],
+        };
+      }
+
+      const activeSources = [
+        !royalMailResult.skipped ? royalMailResult : null,
+        !councilTaxResult.skipped ? councilTaxResult : null,
+        !pricePaidResult.skipped ? pricePaidResult : null,
+      ].filter(Boolean);
+
+      const isValid = activeSources.length > 0
+        ? activeSources.some((s: any) => s.matched)
+        : false;
+
+      const activeCount = activeSources.length;
 
       const record = await storage.createValidation({
         line1: input.line1 || null,
@@ -256,7 +362,9 @@ export async function registerRoutes(
         details: {
           royalMail: royalMailResult,
           councilTax: councilTaxResult,
-          matchScore: royalMailResult.score,
+          pricePaid: pricePaidResult,
+          matchScore: royalMailResult.skipped ? (councilTaxResult.score || pricePaidResult.score || 0) : royalMailResult.score,
+          sourcesChecked: activeCount,
         },
       });
 

@@ -2,7 +2,7 @@ import { AddressForm } from "@/components/address-form";
 import { ValidationHistory } from "@/components/validation-history";
 import { useValidations } from "@/hooks/use-validations";
 import { motion } from "framer-motion";
-import { ClipboardEdit, Search, ShieldCheck, FileText, Scale, ExternalLink } from "lucide-react";
+import { ClipboardEdit, Search, ShieldCheck, FileText, Scale, ExternalLink, Landmark } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
@@ -76,7 +76,7 @@ export default function Home() {
         >
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">How it Works</h2>
           <p className="text-sm text-slate-500 text-center mb-8 max-w-lg mx-auto">
-            Your address is checked against two independent official data sources for reliable verification.
+            Your address is checked against up to three independent official data sources for reliable verification.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -90,8 +90,8 @@ export default function Home() {
               {
                 step: 2,
                 icon: Search,
-                title: "Cross-reference two sources",
-                description: "We look up your postcode with Ideal Postcodes (Royal Mail PAF data) and open address records published by UK local authorities.",
+                title: "Cross-reference sources",
+                description: "We look up your postcode with Ideal Postcodes (Royal Mail PAF data), open address records from UK local authorities, and HM Land Registry property sale data.",
               },
               {
                 step: 3,
@@ -134,10 +134,10 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-slate-900 text-center">Data Sources & Licensing</h2>
           </div>
           <p className="text-sm text-slate-500 text-center mb-8 max-w-lg mx-auto">
-            This service uses two officially licensed data sources. All data is used in compliance with the terms below.
+            This service uses three officially licensed data sources. All data is used in compliance with the terms below.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="overflow-visible">
               <CardContent className="pt-6 pb-5 px-6">
                 <h3 className="font-semibold text-slate-900 mb-1">Ideal Postcodes</h3>
@@ -202,6 +202,42 @@ export default function Home() {
                 </a>
               </CardContent>
             </Card>
+
+            <Card className="overflow-visible">
+              <CardContent className="pt-6 pb-5 px-6">
+                <h3 className="font-semibold text-slate-900 mb-1">HM Land Registry</h3>
+                <p className="text-xs font-medium text-slate-400 mb-3">Price Paid Data (2023-2025)</p>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                  Property sale records are sourced from HM Land Registry's Price Paid Data, covering
+                  residential property transactions in England and Wales. This data confirms whether a
+                  property has been sold and provides sale history including prices and dates.
+                </p>
+                <div className="bg-slate-50 rounded-md p-3 mb-4">
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Contains HM Land Registry data &copy; Crown copyright and database right.
+                    Licensed under the{" "}
+                    <a
+                      href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Open Government Licence v3.0
+                    </a>.
+                  </p>
+                </div>
+                <a
+                  href="https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary font-medium"
+                  data-testid="link-land-registry"
+                >
+                  HM Land Registry Price Paid Data
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </CardContent>
+            </Card>
           </div>
 
           <Card className="overflow-visible mt-4">
@@ -261,6 +297,7 @@ export default function Home() {
           </p>
           <p className="mt-1 text-xs">
             Contains Royal Mail data &copy; Royal Mail copyright and database right.
+            Contains HM Land Registry data &copy; Crown copyright and database right.
             Contains public sector information licensed under the Open Government Licence v3.0.
           </p>
         </footer>

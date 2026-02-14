@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCreateValidation, type ValidationRequest } from "@/hooks/use-validations";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Search, MapPinCheckInside, Building2, CheckCircle2, XCircle, Info, AlertTriangle, Database, Mail } from "lucide-react";
+import { Loader2, Search, MapPinCheckInside, Building2, CheckCircle2, XCircle, Info, AlertTriangle, Database, Mail, Landmark, PoundSterling } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
@@ -57,6 +57,9 @@ function SourceResult({ source, label, icon: Icon, result }: {
     if (!matchedAddr) return null;
     if (source === "royalMail") {
       return [matchedAddr.line_1, matchedAddr.line_2, matchedAddr.line_3, matchedAddr.post_town, matchedAddr.postcode].filter(Boolean).join(', ');
+    }
+    if (source === "pricePaid") {
+      return [matchedAddr.saon, matchedAddr.paon, matchedAddr.street, matchedAddr.town, matchedAddr.postcode].filter(Boolean).join(', ');
     }
     return [matchedAddr.addr1, matchedAddr.addr2, matchedAddr.addr3, matchedAddr.postcode].filter(Boolean).join(', ');
   };
@@ -117,6 +120,7 @@ export function AddressForm() {
   const [lastResult, setLastResult] = useState<Validation | null>(null);
   const [useIdealPostcodes, setUseIdealPostcodes] = useState(true);
   const [useOpenAddresses, setUseOpenAddresses] = useState(true);
+  const [usePricePaid, setUsePricePaid] = useState(false);
 
   const form = useForm<InsertValidation>({
     resolver: zodResolver(insertValidationSchema),
@@ -135,6 +139,7 @@ export function AddressForm() {
       sources: {
         idealPostcodes: useIdealPostcodes,
         openAddresses: useOpenAddresses,
+        pricePaid: usePricePaid,
       },
     };
     mutation.mutate(request, {
@@ -147,7 +152,7 @@ export function AddressForm() {
     });
   }
 
-  const neitherSelected = !useIdealPostcodes && !useOpenAddresses;
+  const noneSelected = !useIdealPostcodes && !useOpenAddresses && !usePricePaid;
   const estimatedCost = useIdealPostcodes ? "~2p" : "Free";
 
   const details = lastResult?.details as any;
@@ -163,7 +168,7 @@ export function AddressForm() {
           </div>
           <CardTitle className="text-3xl">Validate Address</CardTitle>
           <CardDescription className="text-base">
-            Enter address details below to verify against two official sources.
+            Enter address details below to verify against official data sources.
           </CardDescription>
         </CardHeader>
 
@@ -233,7 +238,7 @@ export function AddressForm() {
 
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-700">Validate against</p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <label
                     className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${useIdealPostcodes ? 'border-primary/40 bg-primary/5' : 'border-slate-200'}`}
                     data-testid="toggle-ideal-postcodes"
@@ -269,9 +274,27 @@ export function AddressForm() {
                       <span className="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1">Free</span>
                     </div>
                   </label>
+
+                  <label
+                    className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${usePricePaid ? 'border-primary/40 bg-primary/5' : 'border-slate-200'}`}
+                    data-testid="toggle-price-paid"
+                  >
+                    <Checkbox
+                      checked={usePricePaid}
+                      onCheckedChange={(v) => setUsePricePaid(!!v)}
+                    />
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Landmark className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm font-medium">HM Land Registry</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Property sale history (2023-2025)</p>
+                      <span className="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1">Free</span>
+                    </div>
+                  </label>
                 </div>
 
-                {neitherSelected && (
+                {noneSelected && (
                   <p className="text-xs text-red-500 font-medium" data-testid="text-source-error">Please select at least one data source.</p>
                 )}
 
@@ -285,7 +308,7 @@ export function AddressForm() {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold shadow-blue-900/20 shadow-lg"
-                disabled={mutation.isPending || neitherSelected}
+                disabled={mutation.isPending || noneSelected}
                 data-testid="button-validate"
               >
                 {mutation.isPending ? (
@@ -324,9 +347,7 @@ export function AddressForm() {
                       {lastResult.isValid ? 'Address Verified' : 'Address Not Found'}
                     </h3>
                     <p className={`text-sm ${lastResult.isValid ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {details?.royalMail?.skipped || details?.councilTax?.skipped
-                        ? 'Checked against one data source'
-                        : 'Checked against two data sources'}
+                      Checked against {details?.sourcesChecked || 1} data source{(details?.sourcesChecked || 1) !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
@@ -344,6 +365,53 @@ export function AddressForm() {
                     icon={Database}
                     result={details?.councilTax}
                   />
+                  <SourceResult
+                    source="pricePaid"
+                    label="HM Land Registry Price Paid"
+                    icon={Landmark}
+                    result={details?.pricePaid}
+                  />
+
+                  {details?.pricePaid?.saleHistory && details.pricePaid.saleHistory.length > 0 && (
+                    <div className="rounded-md border border-slate-200 bg-white/60 p-4" data-testid="section-sale-history">
+                      <div className="flex items-center gap-2 mb-3">
+                        <PoundSterling className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-semibold">Property Sale History</span>
+                        <span className="text-xs text-muted-foreground ml-auto">{details.pricePaid.saleHistory.length} transaction{details.pricePaid.saleHistory.length !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {details.pricePaid.saleHistory.map((sale: any, i: number) => {
+                          const typeLabels: Record<string, string> = { D: 'Detached', S: 'Semi-detached', T: 'Terraced', F: 'Flat/Maisonette', O: 'Other' };
+                          const durationLabels: Record<string, string> = { F: 'Freehold', L: 'Leasehold', U: 'Unknown' };
+                          const date = sale.date ? new Date(sale.date).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown date';
+                          const price = sale.price ? `\u00A3${Number(sale.price).toLocaleString()}` : 'Unknown';
+
+                          return (
+                            <div key={i} className="flex items-center justify-between gap-4 py-2 border-b border-slate-100 last:border-0" data-testid={`sale-record-${i}`}>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm font-semibold text-slate-900">{price}</span>
+                                <span className="text-xs text-muted-foreground ml-2">{date}</span>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap justify-end">
+                                {sale.propertyType && (
+                                  <span className="text-xs text-muted-foreground">{typeLabels[sale.propertyType] || sale.propertyType}</span>
+                                )}
+                                {sale.duration && (
+                                  <span className="text-xs text-muted-foreground">{durationLabels[sale.duration] || sale.duration}</span>
+                                )}
+                                {sale.oldNew === 'Y' && (
+                                  <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5">New build</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-3">
+                        Source: HM Land Registry Price Paid Data. Crown copyright.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

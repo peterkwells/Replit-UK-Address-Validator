@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertValidation, type Validation } from "@shared/schema";
+import { type InsertValidation, type Validation } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // Since the shared routes manifest might not be fully available in the type system during generation,
@@ -24,6 +24,7 @@ export type ValidationRequest = InsertValidation & {
   sources?: {
     idealPostcodes: boolean;
     openAddresses: boolean;
+    pricePaid: boolean;
   };
 };
 
