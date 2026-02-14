@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CheckCircle2, XCircle, MapPin, Search, Mail, Database, Landmark, AlertTriangle, ChevronDown, ChevronUp, Shield } from "lucide-react";
+import { CheckCircle2, XCircle, MapPin, Search, Mail, Database, Landmark, AlertTriangle, ChevronDown, ChevronUp, Shield, Filter, X, SlidersHorizontal } from "lucide-react";
 import { Validation } from "@shared/schema";
 import {
   Card,
@@ -10,14 +10,18 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "./ui/input";
 
 interface ValidationHistoryProps {
   validations: Validation[];
   isLoading: boolean;
 }
+
+type StatusFilter = "all" | "valid" | "invalid";
+type SourceFilter = "royalMail" | "councilTax" | "pricePaid";
 
 function SourceIcon({ source }: { source: string }) {
   switch (source) {
@@ -179,20 +183,95 @@ function ExpandedDetails({ details }: { details: any }) {
   );
 }
 
+function getSearchableText(v: Validation): string {
+  const parts: string[] = [
+    v.postcode,
+    v.line1 || "",
+    v.line2 || "",
+    v.town || "",
+  ];
+  const details = v.details as any;
+  if (details) {
+    for (const source of ["royalMail", "councilTax", "pricePaid"]) {
+      const r = details[source];
+      if (!r || r.skipped) continue;
+      const ma = r.matchedAddress;
+      if (ma) {
+        parts.push(
+          ma.line_1 || "", ma.line_2 || "", ma.line_3 || "", ma.post_town || "",
+          ma.addr1 || "", ma.addr2 || "", ma.addr3 || "",
+          ma.paon || "", ma.saon || "", ma.street || "", ma.town || "",
+          ma.postcode || "",
+        );
+      }
+      if (r.council) parts.push(r.council);
+      if (r.suggestions) {
+        for (const s of r.suggestions) {
+          if (typeof s === "string") parts.push(s);
+        }
+      }
+    }
+  }
+  return parts.join(" ").toLowerCase();
+}
+
+function hasSource(v: Validation, source: SourceFilter): boolean {
+  const details = v.details as any;
+  return details?.[source] && !details[source].skipped;
+}
+
 export function ValidationHistory({ validations, isLoading }: ValidationHistoryProps) {
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sourceFilters, setSourceFilters] = useState<Set<SourceFilter>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
 
-  const filteredValidations = validations
-    .filter((v) => {
-      const searchLower = search.toLowerCase();
-      return (
-        v.postcode.toLowerCase().includes(searchLower) ||
-        v.town?.toLowerCase().includes(searchLower) ||
-        v.line1?.toLowerCase().includes(searchLower)
-      );
-    })
-    .sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime());
+  const hasActiveFilters = statusFilter !== "all" || sourceFilters.size > 0 || search.length > 0;
+
+  const filteredValidations = useMemo(() => {
+    return validations
+      .filter((v) => {
+        if (statusFilter === "valid" && !v.isValid) return false;
+        if (statusFilter === "invalid" && v.isValid) return false;
+
+        if (sourceFilters.size > 0) {
+          for (const sf of sourceFilters) {
+            if (!hasSource(v, sf)) return false;
+          }
+        }
+
+        if (search.length > 0) {
+          const searchLower = search.toLowerCase();
+          const text = getSearchableText(v);
+          const terms = searchLower.split(/\s+/).filter(Boolean);
+          for (const term of terms) {
+            if (!text.includes(term)) return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime());
+  }, [validations, search, statusFilter, sourceFilters]);
+
+  const toggleSourceFilter = (source: SourceFilter) => {
+    setSourceFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(source)) {
+        next.delete(source);
+      } else {
+        next.add(source);
+      }
+      return next;
+    });
+  };
+
+  const clearAllFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setSourceFilters(new Set());
+  };
 
   if (isLoading) {
     return (
@@ -212,26 +291,125 @@ export function ValidationHistory({ validations, isLoading }: ValidationHistoryP
 
   return (
     <Card className="h-[600px] flex flex-col bg-white/50 backdrop-blur-sm border-blue-100/50 shadow-xl shadow-blue-900/5">
-      <CardHeader>
+      <CardHeader className="space-y-3 pb-3">
         <div className="flex items-center justify-between gap-1">
           <div>
             <CardTitle>History</CardTitle>
             <CardDescription>Recent address validations</CardDescription>
           </div>
           <Badge variant="secondary" className="px-3 py-1 bg-blue-50 text-blue-700">
-            {validations.length} Checks
+            {filteredValidations.length === validations.length
+              ? `${validations.length} Checks`
+              : `${filteredValidations.length} / ${validations.length}`}
           </Badge>
         </div>
-        <div className="relative pt-2">
+
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search history..." 
-            className="pl-9 bg-white/80"
+          <Input
+            placeholder="Search address, postcode, town, street..."
+            className="pl-9 pr-20 bg-white/80"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             data-testid="input-search-history"
           />
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {search.length > 0 && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={() => setSearch("")}
+                data-testid="button-clear-search"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+            <Button
+              size="icon"
+              variant="ghost"
+              className={`h-6 w-6 toggle-elevate ${showFilters ? "toggle-elevated" : ""}`}
+              onClick={() => setShowFilters(!showFilters)}
+              data-testid="button-toggle-filters"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.15 }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-2.5 pt-1">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Result</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {(["all", "valid", "invalid"] as StatusFilter[]).map(s => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={statusFilter === s ? "default" : "outline"}
+                        onClick={() => setStatusFilter(s)}
+                        data-testid={`button-filter-${s}`}
+                      >
+                        {s === "all" && "All"}
+                        {s === "valid" && (
+                          <span className="flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" /> Valid
+                          </span>
+                        )}
+                        {s === "invalid" && (
+                          <span className="flex items-center gap-1">
+                            <XCircle className="h-3 w-3" /> Invalid
+                          </span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Source used</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {(["royalMail", "councilTax", "pricePaid"] as SourceFilter[]).map(s => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={sourceFilters.has(s) ? "default" : "outline"}
+                        onClick={() => toggleSourceFilter(s)}
+                        data-testid={`button-filter-source-${s}`}
+                      >
+                        <span className="flex items-center gap-1">
+                          <SourceIcon source={s} />
+                          <SourceLabel source={s} />
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {hasActiveFilters && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-muted-foreground"
+                    onClick={clearAllFilters}
+                    data-testid="button-clear-filters"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear all filters
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardHeader>
       <CardContent className="flex-1 p-0 overflow-hidden">
         <ScrollArea className="h-full px-6 pb-6">
@@ -239,7 +417,18 @@ export function ValidationHistory({ validations, isLoading }: ValidationHistoryP
             {filteredValidations.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-center text-muted-foreground">
                 <MapPin className="h-10 w-10 mb-2 opacity-20" />
-                <p>No validation history found</p>
+                <p>{hasActiveFilters ? "No results match your filters" : "No validation history found"}</p>
+                {hasActiveFilters && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2 text-xs"
+                    onClick={clearAllFilters}
+                    data-testid="button-clear-filters-empty"
+                  >
+                    Clear filters
+                  </Button>
+                )}
               </div>
             ) : (
               filteredValidations.map((v, i) => {
@@ -253,7 +442,7 @@ export function ValidationHistory({ validations, isLoading }: ValidationHistoryP
                     key={v.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
+                    transition={{ delay: Math.min(i * 0.03, 0.3) }}
                     className="group relative rounded-xl border border-border/50 bg-white hover:border-blue-200 transition-all duration-300 cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : v.id)}
                     data-testid={`card-validation-${v.id}`}
