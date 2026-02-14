@@ -243,6 +243,8 @@ export async function registerRoutes(
           matchedAddress: null,
           suggestions: [],
           totalAddresses: 0,
+          licenceConfidence: "low",
+          licenceNote: "Royal Mail PAF data. Re-use restricted by Royal Mail licensing terms; commercial redistribution requires a separate PAF licence.",
         };
       } else if (apiResponse.code !== 2000 || !apiResponse.result || apiResponse.result.length === 0) {
         royalMailResult = {
@@ -252,6 +254,8 @@ export async function registerRoutes(
           matchedAddress: null,
           suggestions: [],
           totalAddresses: 0,
+          licenceConfidence: "low",
+          licenceNote: "Royal Mail PAF data. Re-use restricted by Royal Mail licensing terms; commercial redistribution requires a separate PAF licence.",
         };
       } else {
         const rmAddresses = apiResponse.result;
@@ -273,6 +277,8 @@ export async function registerRoutes(
           } : null,
           suggestions: rmResult.suggestions,
           totalAddresses: rmAddresses.length,
+          licenceConfidence: "low",
+          licenceNote: "Royal Mail PAF data. Re-use restricted by Royal Mail licensing terms; commercial redistribution requires a separate PAF licence.",
         };
       }
 
@@ -295,6 +301,8 @@ export async function registerRoutes(
           } : null,
           suggestions: ctResult.suggestions,
           totalAddresses: councilTaxAddresses.length,
+          licenceConfidence: "high",
+          licenceNote: "Open Government Licence v3.0. Free re-use for any purpose including commercial, with attribution.",
         };
       } else {
         councilTaxResult = {
@@ -305,6 +313,8 @@ export async function registerRoutes(
           matchedAddress: null,
           suggestions: [],
           totalAddresses: 0,
+          licenceConfidence: "high",
+          licenceNote: "Open Government Licence v3.0. Free re-use for any purpose including commercial, with attribution.",
         };
       }
 
@@ -328,6 +338,8 @@ export async function registerRoutes(
           suggestions: ppResult.suggestions,
           totalAddresses: pricePaidData.length,
           saleHistory: ppResult.saleHistory,
+          licenceConfidence: "medium",
+          licenceNote: "OGL v3.0 for transaction data, but address fields derived from OS MasterMap and Royal Mail PAF. Re-use of the address components may require separate OS/Royal Mail licences.",
         };
       } else {
         pricePaidResult = {
@@ -338,6 +350,8 @@ export async function registerRoutes(
           suggestions: [],
           totalAddresses: 0,
           saleHistory: [],
+          licenceConfidence: "medium",
+          licenceNote: "OGL v3.0 for transaction data, but address fields derived from OS MasterMap and Royal Mail PAF. Re-use of the address components may require separate OS/Royal Mail licences.",
         };
       }
 

@@ -196,6 +196,16 @@ export default function Home() {
                   When an exact match isn't found, you'll see nearby addresses at the same postcode. These
                   can help identify typos or confirm the correct house number or flat designation.
                 </div>
+                <div>
+                  <span className="font-medium text-slate-700">Licence re-use confidence.</span>{" "}
+                  Each source is rated for how freely you can re-use its address data.{" "}
+                  <span className="text-emerald-600 font-medium">High</span> means the data is openly
+                  licensed for any purpose (e.g. OGL v3.0).{" "}
+                  <span className="text-amber-600 font-medium">Medium</span> means the data itself is
+                  open but contains address components from restricted sources like OS or Royal Mail.{" "}
+                  <span className="text-red-500 font-medium">Low</span> means re-use is restricted and
+                  may require a separate commercial licence.
+                </div>
               </div>
             </CardContent>
           </Card>

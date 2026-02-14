@@ -41,12 +41,36 @@ function SourceLabel({ source }: { source: string }) {
   }
 }
 
-function SourceLicense({ source }: { source: string }) {
+function LicenceConfidenceBadge({ level }: { level: string | undefined }) {
+  if (!level) return null;
+  const config: Record<string, { label: string; className: string }> = {
+    low: { label: "Low", className: "bg-red-50 text-red-600 border-red-200" },
+    medium: { label: "Medium", className: "bg-amber-50 text-amber-700 border-amber-200" },
+    high: { label: "High", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  };
+  const c = config[level] || config.low;
+  return (
+    <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 gap-1 ${c.className}`}>
+      {c.label} re-use
+    </Badge>
+  );
+}
+
+function getFallbackLicenceInfo(source: string): { note: string; confidence: string } {
   switch (source) {
-    case "royalMail": return "Royal Mail / Ideal Postcodes (paid)";
-    case "councilTax": return "Open data, OGL v3.0";
-    case "pricePaid": return "Crown copyright, OGL v3.0. Contains HM Land Registry data. Address data processed against OS MasterMap / Royal Mail PAF (re-use subject to OS and Royal Mail licence terms).";
-    default: return "";
+    case "royalMail": return {
+      note: "Royal Mail PAF data. Re-use restricted by Royal Mail licensing terms; commercial redistribution requires a separate PAF licence.",
+      confidence: "low",
+    };
+    case "councilTax": return {
+      note: "Open Government Licence v3.0. Free re-use for any purpose including commercial, with attribution.",
+      confidence: "high",
+    };
+    case "pricePaid": return {
+      note: "OGL v3.0 for transaction data, but address fields derived from OS MasterMap and Royal Mail PAF. Re-use of the address components may require separate OS/Royal Mail licences.",
+      confidence: "medium",
+    };
+    default: return { note: "", confidence: "low" };
   }
 }
 
@@ -144,9 +168,12 @@ function ExpandedDetails({ details }: { details: any }) {
                   </div>
                 )}
 
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
-                  <Shield className="h-2.5 w-2.5" />
-                  <SourceLicense source={source} />
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/50 flex-wrap">
+                  <LicenceConfidenceBadge level={result.licenceConfidence || getFallbackLicenceInfo(source).confidence} />
+                  <div className="flex items-center gap-1">
+                    <Shield className="h-2.5 w-2.5" />
+                    <span>{result.licenceNote || getFallbackLicenceInfo(source).note}</span>
+                  </div>
                 </div>
               </div>
             );
