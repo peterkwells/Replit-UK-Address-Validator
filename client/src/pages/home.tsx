@@ -4,6 +4,7 @@ import { useValidations } from "@/hooks/use-validations";
 import { motion } from "framer-motion";
 import { ClipboardEdit, Search, ShieldCheck, FileText, Scale, ExternalLink, Landmark, Mail, Database } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   const { data: validations = [], isLoading } = useValidations();
@@ -229,7 +230,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="overflow-visible">
               <CardContent className="pt-6 pb-5 px-6">
-                <h3 className="font-semibold text-slate-900 mb-1">Ideal Postcodes</h3>
+                <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-slate-900">Ideal Postcodes</h3>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-red-50 text-red-600 border-red-200">Low re-use</Badge>
+                </div>
                 <p className="text-xs font-medium text-slate-400 mb-3">Royal Mail Postcode Address File (PAF)</p>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Address lookups are performed via the Ideal Postcodes API, which provides access to Royal Mail's
@@ -257,7 +261,10 @@ export default function Home() {
 
             <Card className="overflow-visible">
               <CardContent className="pt-6 pb-5 px-6">
-                <h3 className="font-semibold text-slate-900 mb-1">Open Address Data</h3>
+                <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-slate-900">Open Address Data</h3>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-50 text-emerald-700 border-emerald-200">High re-use</Badge>
+                </div>
                 <p className="text-xs font-medium text-slate-400 mb-3">UK Local Authority Council Tax Address Lists</p>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Address records are sourced from Council Tax address lists published as open data by UK local
@@ -294,7 +301,10 @@ export default function Home() {
 
             <Card className="overflow-visible">
               <CardContent className="pt-6 pb-5 px-6">
-                <h3 className="font-semibold text-slate-900 mb-1">HM Land Registry</h3>
+                <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-slate-900">HM Land Registry</h3>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-700 border-amber-200">Medium re-use</Badge>
+                </div>
                 <p className="text-xs font-medium text-slate-400 mb-3">Price Paid Data (2013-2025)</p>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Property sale records are sourced from HM Land Registry's Price Paid Data, covering
