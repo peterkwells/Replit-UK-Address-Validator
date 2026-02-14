@@ -28,32 +28,60 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-3">
               <span className="text-primary">UK</span> Address Validator
             </h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Professional address verification service powered by official postcode data.
-              Ensure your delivery data is accurate and up-to-date.
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Check any UK address against multiple official data sources.
+              See how confident each source is, what it costs, and how freely you can re-use the data.
             </p>
           </motion.div>
 
-          {/* Quick Stats */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="flex justify-center gap-4 md:gap-8 pt-4"
+            className="flex justify-center gap-3 md:gap-4 pt-4 flex-wrap"
           >
-            <div className="px-6 py-3 bg-white rounded-full shadow-sm border border-slate-100 flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              <span className="text-sm font-medium text-slate-600">
-                <strong className="text-slate-900">{totalChecks}</strong> Checks Performed
+            <div className="px-4 py-2.5 bg-white rounded-md shadow-sm border border-slate-100 flex items-center gap-2.5">
+              <ShieldCheck className="h-4 w-4 text-blue-500" />
+              <span className="text-sm text-slate-600">
+                <strong className="text-slate-900">Accuracy</strong>
+                <span className="hidden sm:inline"> &mdash; confidence scores from each source</span>
               </span>
             </div>
-            <div className="px-6 py-3 bg-white rounded-full shadow-sm border border-slate-100 flex items-center gap-3">
+            <div className="px-4 py-2.5 bg-white rounded-md shadow-sm border border-slate-100 flex items-center gap-2.5">
+              <Scale className="h-4 w-4 text-amber-500" />
+              <span className="text-sm text-slate-600">
+                <strong className="text-slate-900">Licensing</strong>
+                <span className="hidden sm:inline"> &mdash; re-use rights rated per source</span>
+              </span>
+            </div>
+            <div className="px-4 py-2.5 bg-white rounded-md shadow-sm border border-slate-100 flex items-center gap-2.5">
+              <FileText className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm text-slate-600">
+                <strong className="text-slate-900">Cost</strong>
+                <span className="hidden sm:inline"> &mdash; free sources clearly marked</span>
+              </span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center gap-4 md:gap-6 pt-3"
+          >
+            <div className="px-5 py-2 bg-white/70 rounded-full shadow-sm border border-slate-100 flex items-center gap-2.5">
+              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-sm font-medium text-slate-600">
+                <strong className="text-slate-900">{totalChecks}</strong> Checks
+              </span>
+            </div>
+            <div className="px-5 py-2 bg-white/70 rounded-full shadow-sm border border-slate-100 flex items-center gap-2.5">
               <div className="h-2 w-2 rounded-full bg-emerald-500" />
               <span className="text-sm font-medium text-slate-600">
-                <strong className="text-slate-900">{validPercentage}%</strong> Validity Rate
+                <strong className="text-slate-900">{validPercentage}%</strong> Valid
               </span>
             </div>
           </motion.div>
