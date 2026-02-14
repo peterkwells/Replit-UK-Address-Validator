@@ -2,7 +2,7 @@ import { AddressForm } from "@/components/address-form";
 import { ValidationHistory } from "@/components/validation-history";
 import { useValidations } from "@/hooks/use-validations";
 import { motion } from "framer-motion";
-import { ClipboardEdit, Search, ShieldCheck, FileText, Scale, ExternalLink, Landmark } from "lucide-react";
+import { ClipboardEdit, Search, ShieldCheck, FileText, Scale, ExternalLink, Landmark, Mail, Database } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
@@ -90,8 +90,8 @@ export default function Home() {
               {
                 step: 2,
                 icon: Search,
-                title: "Cross-reference sources",
-                description: "We look up your postcode with Ideal Postcodes (Royal Mail PAF data), open address records from UK local authorities, and HM Land Registry property sale data.",
+                title: "Choose your sources",
+                description: "Select which data sources to check against. Royal Mail PAF costs approx. 2p per lookup; Council Tax and Land Registry checks are free.",
               },
               {
                 step: 3,
@@ -120,6 +120,85 @@ export default function Home() {
               </Card>
             ))}
           </div>
+
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="overflow-visible">
+              <CardContent className="pt-5 pb-5 px-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center h-7 w-7 rounded-md bg-blue-50 text-blue-600 shrink-0">
+                    <Mail className="h-3.5 w-3.5" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 text-sm">Royal Mail PAF</h3>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  The most comprehensive UK address list, maintained by Royal Mail and accessed via the
+                  Ideal Postcodes API. Covers every deliverable address in the UK. Ideal for confirming
+                  that an address exists and is formatted correctly. Each lookup costs approximately 2p.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-visible">
+              <CardContent className="pt-5 pb-5 px-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center h-7 w-7 rounded-md bg-amber-50 text-amber-600 shrink-0">
+                    <Database className="h-3.5 w-3.5" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 text-sm">Council Tax Records</h3>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  Open data address lists published by 24 UK local authorities, containing around 3.2 million
+                  property records. Coverage varies by council area. Free to use. Useful as an independent
+                  cross-check against a completely separate data source.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-visible">
+              <CardContent className="pt-5 pb-5 px-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center h-7 w-7 rounded-md bg-emerald-50 text-emerald-600 shrink-0">
+                    <Landmark className="h-3.5 w-3.5" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 text-sm">Land Registry Price Paid</h3>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  HM Land Registry records of residential property sales in England and Wales from 2013 to 2025,
+                  covering approximately 12.2 million transactions. Free to use. Confirms whether a property
+                  has been sold, and shows sale prices and dates.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="overflow-visible mt-4">
+            <CardContent className="pt-5 pb-5 px-5">
+              <h3 className="font-semibold text-slate-900 text-sm mb-3">Understanding Your Results</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-500 leading-relaxed">
+                <div>
+                  <span className="font-medium text-slate-700">Confidence score.</span>{" "}
+                  A percentage showing how closely your input matches the best address found in each source.
+                  100% means an exact match; lower scores indicate partial matches such as a correct street
+                  but wrong house number.
+                </div>
+                <div>
+                  <span className="font-medium text-slate-700">Pass / Fail.</span>{" "}
+                  An address passes when the confidence score is 80% or above in at least one checked source.
+                  If all sources return below 80%, the address is marked as invalid.
+                </div>
+                <div>
+                  <span className="font-medium text-slate-700">Not covered.</span>{" "}
+                  Some sources have limited geographic coverage. "Not covered" means the postcode does not
+                  appear in that particular dataset &mdash; it does not mean the address is invalid.
+                </div>
+                <div>
+                  <span className="font-medium text-slate-700">Suggestions.</span>{" "}
+                  When an exact match isn't found, you'll see nearby addresses at the same postcode. These
+                  can help identify typos or confirm the correct house number or flat designation.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.section>
 
         <motion.section

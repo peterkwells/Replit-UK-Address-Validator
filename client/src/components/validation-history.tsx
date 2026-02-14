@@ -236,7 +236,8 @@ export function ValidationHistory({ validations, isLoading }: ValidationHistoryP
         if (statusFilter === "invalid" && v.isValid) return false;
 
         if (sourceFilters.size > 0) {
-          for (const sf of sourceFilters) {
+          const activeFilters = Array.from(sourceFilters);
+          for (const sf of activeFilters) {
             if (!hasSource(v, sf)) return false;
           }
         }
