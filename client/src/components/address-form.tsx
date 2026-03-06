@@ -247,13 +247,17 @@ export function AddressForm() {
                       checked={useIdealPostcodes}
                       onCheckedChange={(v) => setUseIdealPostcodes(!!v)}
                     />
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
                         <span className="text-sm font-medium">Ideal Postcodes</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Royal Mail PAF data</p>
-                      <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 mt-1">~2p per lookup</span>
+                      <p className="text-xs text-muted-foreground">Royal Mail PAF — most complete UK address list</p>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        <span className="inline-block text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">High accuracy</span>
+                        <span className="inline-block text-[10px] font-medium text-red-600 bg-red-50 border border-red-200 rounded px-1.5 py-0.5">Low re-use</span>
+                        <span className="inline-block text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">~2p per lookup</span>
+                      </div>
                     </div>
                   </label>
 
@@ -265,13 +269,17 @@ export function AddressForm() {
                       checked={useOpenAddresses}
                       onCheckedChange={(v) => setUseOpenAddresses(!!v)}
                     />
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Database className="h-3.5 w-3.5 text-primary shrink-0" />
                         <span className="text-sm font-medium">Open Address Data</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">UK local authority records</p>
-                      <span className="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1">Free</span>
+                      <p className="text-xs text-muted-foreground">Council Tax records — 24 local authorities, ~3.2M addresses</p>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        <span className="inline-block text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">Partial coverage</span>
+                        <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">High re-use (OGL)</span>
+                        <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">Free</span>
+                      </div>
                     </div>
                   </label>
 
@@ -283,13 +291,17 @@ export function AddressForm() {
                       checked={usePricePaid}
                       onCheckedChange={(v) => setUsePricePaid(!!v)}
                     />
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Landmark className="h-3.5 w-3.5 text-primary shrink-0" />
                         <span className="text-sm font-medium">HM Land Registry</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Property sale history (2013-2025)</p>
-                      <span className="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5 mt-1">Free</span>
+                      <p className="text-xs text-muted-foreground">Price Paid Data — sold properties only (2013–2025)</p>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        <span className="inline-block text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">Sales only</span>
+                        <span className="inline-block text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">Medium re-use</span>
+                        <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">Free</span>
+                      </div>
                     </div>
                   </label>
                 </div>
