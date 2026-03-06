@@ -382,10 +382,8 @@ export default function Home() {
                   <div className="flex gap-3">
                     <span className="font-semibold text-slate-700 shrink-0">Personal data.</span>
                     <span>
-                      The OGL does not cover personal data. The council datasets used here contain
-                      property addresses only &mdash; no names, occupants, account numbers, or council tax
-                      payment details are included. This service only checks whether an address exists;
-                      it does not store or display any personal information.
+                      The OGL does not cover personal data. Please ensure you take responsibility
+                      for following data protection law if you use this data.
                     </span>
                   </div>
                   <div className="flex gap-3">
