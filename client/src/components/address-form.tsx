@@ -37,7 +37,7 @@ function SourceResult({ source, label, icon: Icon, result }: {
   if (isNotCovered) {
     statusColor = "border-muted bg-muted/20";
     statusIcon = <AlertTriangle className="h-5 w-5 text-muted-foreground" />;
-    statusText = "Postcode not covered by this dataset";
+    statusText = "Property not covered by this dataset";
   } else if (hasError) {
     statusColor = "border-red-200 bg-red-50/50";
     statusIcon = <XCircle className="h-5 w-5 text-red-500" />;
