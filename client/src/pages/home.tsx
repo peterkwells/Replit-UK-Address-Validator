@@ -296,8 +296,10 @@ export default function Home() {
                 <p className="text-xs font-medium text-slate-400 mb-3">UK Local Authority Council Tax Address Lists</p>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Address records are sourced from Council Tax address lists published as open data by UK local
-                  authorities. These datasets are released under the Open Government Licence, which permits free
-                  re-use for commercial and non-commercial purposes.
+                  authorities. These datasets are released under the Open Government Licence and have been
+                  checked to reduce the risk of third-party intellectual property rights (such as Royal Mail or
+                  Ordnance Survey rights) being embedded in the data — making them among the safest UK address
+                  datasets for free commercial and non-commercial re-use.
                 </p>
                 <div className="bg-slate-50 rounded-md p-3 mb-4">
                   <p className="text-xs text-slate-600 leading-relaxed">

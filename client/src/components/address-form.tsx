@@ -277,7 +277,7 @@ export function AddressForm() {
                       <p className="text-xs text-muted-foreground">Council Tax records — 24 local authorities, ~3.2M addresses</p>
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
                         <span className="inline-block text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">Partial coverage</span>
-                        <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">High re-use (OGL)</span>
+                        <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">High re-use (OGL, 3rd-party rights checked)</span>
                         <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">Free</span>
                       </div>
                     </div>
