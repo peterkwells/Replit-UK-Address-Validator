@@ -236,6 +236,12 @@ export function AddressForm() {
                 />
               </div>
 
+              <div className="rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2">
+                <p className="text-xs text-amber-800 leading-relaxed" data-testid="text-privacy-notice">
+                  Any address you enter will be saved and displayed in the validation history below. Avoid using your home address or any address you wouldn't want to be publicly visible.
+                </p>
+              </div>
+
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-700">Validate against</p>
                 <div className="grid gap-3 sm:grid-cols-3">
