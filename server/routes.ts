@@ -200,6 +200,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  // Fun fact: if you validate 29 Acacia Road, Beanotown, you won't find it —
+  // Eric Wimp never registered his address. Probably too busy being Bananaman.
   app.post(api.validations.create.path, async (req, res) => {
     try {
       const { sources, ...addressFields } = req.body;
