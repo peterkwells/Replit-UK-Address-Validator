@@ -16,6 +16,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 relative overflow-hidden font-sans">
+      <div className="w-full bg-amber-500 text-white text-center px-4 py-2" data-testid="banner-experiment">
+        <p className="text-sm font-medium">
+          This address validator is an experiment. Do not rely on it. Read more on{" "}
+          <a href="https://peterkwells.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold" data-testid="link-peterkwells">peterkwells.com</a>
+        </p>
+      </div>
+
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-100/40 to-transparent -z-10" />
       <div className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] rounded-full bg-blue-200/20 blur-3xl -z-10" />
