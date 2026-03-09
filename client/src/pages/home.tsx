@@ -19,7 +19,7 @@ export default function Home() {
       <div className="w-full bg-amber-500 text-white text-center px-4 py-2" data-testid="banner-experiment">
         <p className="text-sm font-medium">
           This address validator is an experiment. Do not rely on it. Read more on{" "}
-          <a href="https://peterkwells.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold" data-testid="link-peterkwells">peterkwells.com</a>
+          <a href="https://peterkwells.com/2026/03/09/experimenting-with-using-replit-to-build-a-postal-address-validator/" target="_blank" rel="noopener noreferrer" className="underline font-semibold" data-testid="link-peterkwells">peterkwells.com</a>
         </p>
       </div>
 
