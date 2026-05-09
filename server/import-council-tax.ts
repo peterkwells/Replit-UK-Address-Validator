@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { councilTaxAddresses, councilTaxDatasetVersions } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "csv-parse/sync";
@@ -55,10 +55,16 @@ async function downloadAndExtract(council: string, url: string): Promise<string 
   const zipPath = path.join(TMP_DIR, `${safeCouncil}.zip`);
   const extractDir = path.join(TMP_DIR, safeCouncil);
 
+  // Validate URL is a Google Drive URL before using it
+  if (!url.startsWith("https://drive.google.com/")) {
+    console.error(`  SKIPPING ${council} — unexpected URL format: ${url}`);
+    return null;
+  }
+
   try {
     console.log(`  Downloading ${council}...`);
     const confirmUrl = url.includes("?") ? `${url}&confirm=t` : `${url}?confirm=t`;
-    execSync(`curl -L -o "${zipPath}" "${confirmUrl}" --max-time 180 --silent --show-error`, {
+    execFileSync("curl", ["-L", "-o", zipPath, confirmUrl, "--max-time", "180", "--silent", "--show-error"], {
       timeout: 200000,
     });
 
@@ -67,16 +73,16 @@ async function downloadAndExtract(council: string, url: string): Promise<string 
       const content = fs.readFileSync(zipPath, "utf8");
       if (content.includes("html") || content.includes("Google") || content.includes("<!DOCTYPE")) {
         console.log(`  WARNING: ${council} - Got HTML page instead of zip, retrying without confirm...`);
-        execSync(`curl -L -o "${zipPath}" "${url}" --max-time 180 --silent --show-error`, {
+        execFileSync("curl", ["-L", "-o", zipPath, url, "--max-time", "180", "--silent", "--show-error"], {
           timeout: 200000,
         });
       }
     }
 
     fs.mkdirSync(extractDir, { recursive: true });
-    execSync(`unzip -o "${zipPath}" -d "${extractDir}"`, { timeout: 30000 });
+    execFileSync("unzip", ["-o", zipPath, "-d", extractDir], { timeout: 30000 });
 
-    const csvFiles = execSync(`find "${extractDir}" -name "*.csv" -type f`)
+    const csvFiles = execFileSync("find", [extractDir, "-name", "*.csv", "-type", "f"])
       .toString()
       .trim()
       .split("\n")
@@ -254,7 +260,7 @@ async function main() {
   console.log(`\nDatabase totals: ${Number(totalCouncils[0].count)} councils, ${Number(totalRows[0].count).toLocaleString()} address records`);
 
   try {
-    execSync(`rm -rf ${TMP_DIR}`);
+    execFileSync("rm", ["-rf", TMP_DIR]);
   } catch {}
 
   process.exit(0);
