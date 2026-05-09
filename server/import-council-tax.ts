@@ -64,21 +64,39 @@ async function downloadAndExtract(council: string, url: string): Promise<string 
     return null;
   }
 
+  const cookieJar = path.join(TMP_DIR, `${safeCouncil}_cookies.txt`);
+
   try {
     console.log(`  Downloading ${council}...`);
-    const confirmUrl = url.includes("?") ? `${url}&confirm=t` : `${url}?confirm=t`;
-    execFileSync("curl", ["-L", "-o", zipPath, confirmUrl, "--max-time", "180", "--silent", "--show-error"], {
-      timeout: 200000,
-    });
+
+    // Step 1: initial request — follows redirects, saves cookies, may return warning HTML for large files
+    const firstResponse = execFileSync("curl", [
+      "-L", "-c", cookieJar, "-b", cookieJar,
+      "-o", zipPath, url,
+      "--max-time", "300", "--silent", "--show-error",
+    ], { timeout: 320000 }).toString();
 
     const stats = fs.statSync(zipPath);
-    if (stats.size < 5000) {
-      const content = fs.readFileSync(zipPath, "utf8");
-      if (content.includes("html") || content.includes("Google") || content.includes("<!DOCTYPE")) {
-        console.log(`  WARNING: ${council} - Got HTML page instead of zip, retrying without confirm...`);
-        execFileSync("curl", ["-L", "-o", zipPath, url, "--max-time", "180", "--silent", "--show-error"], {
-          timeout: 200000,
-        });
+    if (stats.size < 10000) {
+      const html = fs.readFileSync(zipPath, "utf8");
+      if (html.includes("Virus scan warning") || html.includes("uc-warning") || html.includes("uuid")) {
+        // Step 2: extract uuid and file id from the Google Drive warning page form
+        const uuidMatch = html.match(/name="uuid" value="([^"]+)"/);
+        const idMatch = html.match(/name="id" value="([^"]+)"/);
+        if (uuidMatch && idMatch) {
+          const uuid = uuidMatch[1];
+          const fileId = idMatch[1];
+          console.log(`  Large file detected — using confirmation bypass (uuid: ${uuid.slice(0, 8)}...)`);
+          // Step 3: re-download via drive.usercontent.google.com with uuid + cookies
+          execFileSync("curl", [
+            "-L", "-b", cookieJar,
+            "-o", zipPath,
+            `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t&uuid=${uuid}`,
+            "--max-time", "300", "--silent", "--show-error",
+          ], { timeout: 320000 });
+        } else {
+          console.log(`  WARNING: ${council} - Got HTML page but could not extract uuid`);
+        }
       }
     }
 
