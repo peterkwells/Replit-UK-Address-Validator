@@ -1,4 +1,4 @@
-import { pgTable, text, serial, boolean, jsonb, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, jsonb, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,6 +17,13 @@ export const councilTaxAddresses = pgTable("council_tax_addresses", {
 ]);
 
 export type CouncilTaxAddress = typeof councilTaxAddresses.$inferSelect;
+
+export const councilTaxDatasetVersions = pgTable("council_tax_dataset_versions", {
+  council: text("council").primaryKey(),
+  releaseDate: text("release_date").notNull(),
+  recordCount: integer("record_count").notNull(),
+  importedAt: timestamp("imported_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const pricePaidTransactions = pgTable("price_paid_transactions", {
   id: serial("id").primaryKey(),

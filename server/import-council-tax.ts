@@ -1,43 +1,54 @@
 import { db } from "./db";
-import { councilTaxAddresses } from "@shared/schema";
-import { sql } from "drizzle-orm";
+import { councilTaxAddresses, councilTaxDatasetVersions } from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
 import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "csv-parse/sync";
-// @ts-ignore - csv-parse/sync types
-
-const DATASETS: { council: string; url: string }[] = [
-  { council: "Aberdeenshire Council", url: "https://drive.google.com/uc?export=download&id=1zSKt3EIURFP-WOmm2BLeCmuf9yBfyxkF" },
-  { council: "Birmingham City Council", url: "https://drive.google.com/uc?export=download&id=11mFnqYnXW_cNRrKeppIsIgMOs9A52VUa" },
-  { council: "Bradford Council", url: "https://drive.google.com/uc?export=download&id=13OyhGedQCoKJXBBJbxPUWm5kAdFmXfXA" },
-  { council: "Brent Council", url: "https://drive.google.com/uc?export=download&id=1bKi-mAcpcX9CeDnlEoDZLscO3l4Y8RsM" },
-  { council: "Brighton & Hove City Council", url: "https://drive.google.com/uc?export=download&id=1ElqOPZ8OCF0oTjNYxD0ORBwsbCzTmm7C" },
-  { council: "Bristol City Council", url: "https://drive.google.com/uc?export=download&id=1zEzufILubmDNAQvhzGbRczUtNoJrNuD3" },
-  { council: "Camden Council", url: "https://drive.google.com/uc?export=download&id=1LHisoJEM7uXW4eodddV1-X9Oac0u-aS3" },
-  { council: "Cornwall Council", url: "https://drive.google.com/uc?export=download&id=1gVxSlk0oCzxy6wzlTvgadJQ8lVZxQNmb" },
-  { council: "Durham County Council", url: "https://drive.google.com/uc?export=download&id=1biAJJ8P9TaX0WJhvE_2Yky6aHemktJ08" },
-  { council: "Ealing Council", url: "https://drive.google.com/uc?export=download&id=1WyMUpUoCCajp7PM20zoxpp6lkPotIGeQ" },
-  { council: "Hackney Council", url: "https://drive.google.com/uc?export=download&id=16B9vV-ERcfW4B--YN7FpdmqjUDKchG4Z" },
-  { council: "Isle of Wight Council", url: "https://drive.google.com/uc?export=download&id=1S4cnJIkelcmqwJwok5yDzw8O1T-ltMXY" },
-  { council: "Islington Council", url: "https://drive.google.com/uc?export=download&id=1M--m1C1QzSVZ7gldbezmQrXbAqPqn1aE" },
-  { council: "Leeds City Council", url: "https://drive.google.com/uc?export=download&id=1-goEmDTjb1h3K9nMIkChA-Be6CDMMcSm" },
-  { council: "Lewisham Council", url: "https://drive.google.com/uc?export=download&id=1tZOjnRA0lhwpOxxOnAO0IHG3IcGwMhW4" },
-  { council: "Lichfield District Council", url: "https://drive.google.com/uc?export=download&id=11jzD3zSRpLYP1QOXYclDSQr5C7bIsPRs" },
-  { council: "London Borough of Bexley", url: "https://drive.google.com/uc?export=download&id=1AUkwe-G579UNimh6yZybOpT9KMBRo00q" },
-  { council: "Manchester City Council", url: "https://drive.google.com/uc?export=download&id=1iFRYfDjfvC1EFwYmL88AZ2XxgThYpZ-B" },
-  { council: "Milton Keynes City Council", url: "https://drive.google.com/uc?export=download&id=1F2ESkI55_TZBTP0THStbpV4ywKHMZ1wg" },
-  { council: "Newham Council", url: "https://drive.google.com/uc?export=download&id=1mbiSoXDHnCLCxXYu3LrqXNQC7TiGxlb1" },
-  { council: "Northumberland County Council", url: "https://drive.google.com/uc?export=download&id=1kNELdTbrDgHee5p5uCsEA-u4W-95BSvd" },
-  { council: "Plymouth City Council", url: "https://drive.google.com/uc?export=download&id=1wjKPFxr1uI0zj7DdwMxkWWI40mkSWPhr" },
-  { council: "Rhondda Cynon Taf", url: "https://drive.google.com/uc?export=download&id=1O5SqEJdmWvSxSnKN3EvyMDV-gyB2epcV" },
-  { council: "Royal Borough of Greenwich", url: "https://drive.google.com/uc?export=download&id=1bErEyfJ4C4rEP1XnDIVkM7Hby50NP1n0" },
-  { council: "Southwark Council", url: "https://drive.google.com/uc?export=download&id=1xdOUUFVUkHW366FGAsaGGUXc3yCwZ-S8" },
-  { council: "Wigan Council", url: "https://drive.google.com/uc?export=download&id=1XQIAbO_kzI2S_3tkr5iR_2M8z2jtKP7G" },
-  { council: "Wiltshire Council", url: "https://drive.google.com/uc?export=download&id=1UDK8DmRMnylnW_4NUT4FNzjiNUeUxXaw" },
-];
 
 const TMP_DIR = "/tmp/council_tax_import";
+
+interface DatasetEntry {
+  council: string;
+  releaseDate: string;
+  geocodedUrl: string;
+}
+
+async function scrapeDataadaptive(): Promise<DatasetEntry[]> {
+  console.log("Fetching dataset list from https://www.datadaptive.com/addr/ ...");
+  const res = await fetch("https://www.datadaptive.com/addr/");
+  if (!res.ok) throw new Error(`HTTP ${res.status} fetching Datadaptive page`);
+  const html = await res.text();
+
+  const datasets: DatasetEntry[] = [];
+
+  // Split on <hr> separators — each block is one council entry
+  const blocks = html.split(/<hr>/i);
+
+  for (const block of blocks) {
+    // Council name is in <b>...</b> inside a <p> tag
+    const nameMatch = block.match(/<b>([^<]+)<\/b>/i);
+    if (!nameMatch) continue;
+    const council = nameMatch[1].trim();
+    if (!council || council.length < 3) continue;
+
+    // Extract release date: <td class="col1">Extract or release date:</td><td>VALUE</td>
+    const dateMatch = block.match(/<td[^>]*>Extract or release date:<\/td><td>([^<]+)<\/td>/i);
+    if (!dateMatch) continue;
+    const releaseDate = dateMatch[1].trim();
+
+    // Extract geocoded URL — only present when it's a Google Drive link (N/A entries have no <a> tag)
+    const geocodedMatch = block.match(/<td[^>]*>Geocoded data:<\/td><td><a href="(https:\/\/drive\.google\.com\/[^"]+)"/i);
+    if (!geocodedMatch) continue; // skip N/A entries
+
+    const geocodedUrl = geocodedMatch[1].trim();
+
+    datasets.push({ council, releaseDate, geocodedUrl });
+  }
+
+  console.log(`Found ${datasets.length} geocoded datasets on the page.\n`);
+  return datasets;
+}
 
 async function downloadAndExtract(council: string, url: string): Promise<string | null> {
   const safeCouncil = council.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
@@ -76,6 +87,7 @@ async function downloadAndExtract(council: string, url: string): Promise<string 
       return null;
     }
 
+    // Prefer CTBAND CSV (the address bands file), fall back to first CSV
     const ctbandsCsv = csvFiles.find((f) => f.includes("CTBAND")) || csvFiles[0];
     return ctbandsCsv;
   } catch (err: any) {
@@ -120,7 +132,7 @@ async function importCsv(council: string, csvPath: string): Promise<number> {
       imported += values.length;
     }
 
-    if (i % 10000 === 0 && i > 0) {
+    if (i % 20000 === 0 && i > 0) {
       console.log(`    ...imported ${imported} records so far`);
     }
   }
@@ -128,58 +140,118 @@ async function importCsv(council: string, csvPath: string): Promise<number> {
   return imported;
 }
 
+async function getVersionMap(): Promise<Map<string, string>> {
+  const rows = await db.select().from(councilTaxDatasetVersions);
+  return new Map(rows.map(r => [r.council, r.releaseDate]));
+}
+
+async function upsertVersion(council: string, releaseDate: string, recordCount: number) {
+  await db
+    .insert(councilTaxDatasetVersions)
+    .values({ council, releaseDate, recordCount })
+    .onConflictDoUpdate({
+      target: councilTaxDatasetVersions.council,
+      set: { releaseDate, recordCount, importedAt: sql`now()` },
+    });
+}
+
+async function deleteCouncilRecords(council: string) {
+  console.log(`  Deleting existing records for ${council}...`);
+  await db.delete(councilTaxAddresses).where(eq(councilTaxAddresses.council, council));
+}
+
 async function main() {
-  console.log("Council Tax Address Import");
-  console.log("=========================\n");
+  console.log("Council Tax Address Import (with smart refresh)");
+  console.log("===============================================\n");
 
-  const existingCouncils = await db
-    .select({ council: councilTaxAddresses.council })
-    .from(councilTaxAddresses)
-    .groupBy(councilTaxAddresses.council);
+  // Scrape the Datadaptive page for current dataset list
+  const datasets = await scrapeDataadaptive();
 
-  const importedSet = new Set(existingCouncils.map(r => r.council));
-  console.log(`Already imported: ${importedSet.size} councils (${Array.from(importedSet).join(', ')})\n`);
+  if (datasets.length === 0) {
+    console.error("No datasets found — check if the Datadaptive page structure has changed.");
+    process.exit(1);
+  }
+
+  // Load existing version tracking
+  const versionMap = await getVersionMap();
+  console.log(`Tracking table has ${versionMap.size} previously imported councils.\n`);
 
   fs.mkdirSync(TMP_DIR, { recursive: true });
 
   let totalImported = 0;
-  const results: { council: string; count: number; status: string }[] = [];
+  const results: { council: string; count: number; status: string; releaseDate: string }[] = [];
 
-  for (const dataset of DATASETS) {
-    if (importedSet.has(dataset.council)) {
-      console.log(`\nSkipping ${dataset.council} (already imported)`);
-      results.push({ council: dataset.council, count: 0, status: "SKIPPED" });
+  for (const dataset of datasets) {
+    const storedDate = versionMap.get(dataset.council);
+
+    if (storedDate === dataset.releaseDate) {
+      console.log(`Skipping ${dataset.council} — already up to date (${dataset.releaseDate})`);
+      results.push({ council: dataset.council, count: 0, status: "UP_TO_DATE", releaseDate: dataset.releaseDate });
       continue;
     }
-    console.log(`\nProcessing: ${dataset.council}`);
 
-    const csvPath = await downloadAndExtract(
-      dataset.council,
-      dataset.url
-    );
+    // If storedDate is undefined, the council is either brand new or was imported before
+    // the tracking table existed. Either way, delete any existing records and re-import cleanly.
+    const isUpdate = storedDate !== undefined;
+    if (isUpdate) {
+      console.log(`\nUpdating: ${dataset.council} (stored: ${storedDate} → new: ${dataset.releaseDate})`);
+    } else {
+      console.log(`\nImporting: ${dataset.council} (${dataset.releaseDate})`);
+    }
 
+    const csvPath = await downloadAndExtract(dataset.council, dataset.geocodedUrl);
     if (!csvPath) {
-      results.push({ council: dataset.council, count: 0, status: "FAILED" });
+      results.push({ council: dataset.council, count: 0, status: "FAILED", releaseDate: dataset.releaseDate });
       continue;
     }
 
     try {
+      // Always delete before re-importing to avoid duplicates (handles both updates
+      // and councils previously imported without the tracking table)
+      await deleteCouncilRecords(dataset.council);
+
       const count = await importCsv(dataset.council, csvPath);
       totalImported += count;
-      results.push({ council: dataset.council, count, status: "OK" });
-      console.log(`  Imported ${count} records for ${dataset.council}`);
+      await upsertVersion(dataset.council, dataset.releaseDate, count);
+      results.push({ council: dataset.council, count, status: isUpdate ? "UPDATED" : "NEW", releaseDate: dataset.releaseDate });
+      console.log(`  ✓ ${count.toLocaleString()} records imported for ${dataset.council}`);
     } catch (err: any) {
       console.error(`  ERROR importing ${dataset.council}: ${err.message}`);
-      results.push({ council: dataset.council, count: 0, status: "ERROR" });
+      results.push({ council: dataset.council, count: 0, status: "ERROR", releaseDate: dataset.releaseDate });
     }
   }
 
   console.log("\n\n=== IMPORT SUMMARY ===");
-  console.log(`Total records imported: ${totalImported}`);
-  console.log("\nBy council:");
-  for (const r of results) {
-    console.log(`  ${r.council}: ${r.count} records (${r.status})`);
+  console.log(`New records imported this run: ${totalImported.toLocaleString()}`);
+
+  const byStatus = {
+    NEW: results.filter(r => r.status === "NEW"),
+    UPDATED: results.filter(r => r.status === "UPDATED"),
+    UP_TO_DATE: results.filter(r => r.status === "UP_TO_DATE"),
+    FAILED: results.filter(r => r.status === "FAILED"),
+    ERROR: results.filter(r => r.status === "ERROR"),
+  };
+
+  if (byStatus.NEW.length > 0) {
+    console.log(`\nNew councils imported (${byStatus.NEW.length}):`);
+    for (const r of byStatus.NEW) console.log(`  + ${r.council}: ${r.count.toLocaleString()} records (${r.releaseDate})`);
   }
+  if (byStatus.UPDATED.length > 0) {
+    console.log(`\nUpdated councils (${byStatus.UPDATED.length}):`);
+    for (const r of byStatus.UPDATED) console.log(`  ↑ ${r.council}: ${r.count.toLocaleString()} records (${r.releaseDate})`);
+  }
+  if (byStatus.UP_TO_DATE.length > 0) {
+    console.log(`\nAlready up to date (${byStatus.UP_TO_DATE.length}): ${byStatus.UP_TO_DATE.map(r => r.council).join(", ")}`);
+  }
+  if (byStatus.FAILED.length > 0 || byStatus.ERROR.length > 0) {
+    console.log(`\nFailed (${byStatus.FAILED.length + byStatus.ERROR.length}):`);
+    for (const r of [...byStatus.FAILED, ...byStatus.ERROR]) console.log(`  ✗ ${r.council} (${r.status})`);
+  }
+
+  // Get total DB counts for summary
+  const totalRows = await db.select({ count: sql<number>`count(*)` }).from(councilTaxAddresses);
+  const totalCouncils = await db.select({ count: sql<number>`count(distinct council)` }).from(councilTaxAddresses);
+  console.log(`\nDatabase totals: ${Number(totalCouncils[0].count)} councils, ${Number(totalRows[0].count).toLocaleString()} address records`);
 
   try {
     execSync(`rm -rf ${TMP_DIR}`);

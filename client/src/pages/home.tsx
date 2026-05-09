@@ -183,7 +183,7 @@ export default function Home() {
                   <h3 className="font-semibold text-slate-900 text-sm">Council Tax Records</h3>
                 </div>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  Open data address lists published by 24 UK local authorities, containing around 3.2 million
+                  Open data address lists published by up to 49 UK local authorities, containing around 7.8 million
                   property records. Coverage varies by council area. Free to use. Useful as an independent
                   cross-check against a completely separate data source.
                 </p>
