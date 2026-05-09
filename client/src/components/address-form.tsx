@@ -280,7 +280,7 @@ export function AddressForm() {
                         <Database className="h-3.5 w-3.5 text-primary shrink-0" />
                         <span className="text-sm font-medium">Open Address Data</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Council Tax records — up to 49 local authorities, ~7.8M addresses</p>
+                      <p className="text-xs text-muted-foreground">Council Tax records — 51 local authorities, ~5.7M addresses</p>
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
                         <span className="inline-block text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">Partial coverage</span>
                         <span className="inline-block text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">High re-use (OGL, 3rd-party rights checked)</span>
