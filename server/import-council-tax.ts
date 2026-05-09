@@ -5,6 +5,9 @@ import { execFileSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "csv-parse/sync";
+import { sendEmail } from "./resend";
+
+const NOTIFY_EMAIL = "peterkwells@gmail.com";
 
 const TMP_DIR = "/tmp/council_tax_import";
 
@@ -257,11 +260,35 @@ async function main() {
   // Get total DB counts for summary
   const totalRows = await db.select({ count: sql<number>`count(*)` }).from(councilTaxAddresses);
   const totalCouncils = await db.select({ count: sql<number>`count(distinct council)` }).from(councilTaxAddresses);
-  console.log(`\nDatabase totals: ${Number(totalCouncils[0].count)} councils, ${Number(totalRows[0].count).toLocaleString()} address records`);
+  const totalAddresses = Number(totalRows[0].count);
+  const totalCouncilCount = Number(totalCouncils[0].count);
+  console.log(`\nDatabase totals: ${totalCouncilCount} councils, ${totalAddresses.toLocaleString()} address records`);
 
   try {
     execFileSync("rm", ["-rf", TMP_DIR]);
   } catch {}
+
+  // Send completion notification email
+  try {
+    const newList = byStatus.NEW.map(r => `<li>${r.council}: ${r.count.toLocaleString()} records (${r.releaseDate})</li>`).join("");
+    const updatedList = byStatus.UPDATED.map(r => `<li>${r.council}: ${r.count.toLocaleString()} records (${r.releaseDate})</li>`).join("");
+    const failedList = [...byStatus.FAILED, ...byStatus.ERROR].map(r => `<li>${r.council} (${r.status})</li>`).join("");
+
+    await sendEmail(
+      NOTIFY_EMAIL,
+      "Council tax data import complete",
+      `<h2>Council Tax Data Import Complete</h2>
+      <p><strong>${totalCouncilCount} councils, ${totalAddresses.toLocaleString()} address records</strong> now in the database.</p>
+      ${byStatus.NEW.length > 0 ? `<h3>New councils imported (${byStatus.NEW.length})</h3><ul>${newList}</ul>` : ""}
+      ${byStatus.UPDATED.length > 0 ? `<h3>Updated councils (${byStatus.UPDATED.length})</h3><ul>${updatedList}</ul>` : ""}
+      ${byStatus.UP_TO_DATE.length > 0 ? `<p>${byStatus.UP_TO_DATE.length} councils were already up to date and skipped.</p>` : ""}
+      ${failedList ? `<h3>Failed</h3><ul>${failedList}</ul>` : ""}
+      `
+    );
+    console.log(`\nNotification email sent to ${NOTIFY_EMAIL}`);
+  } catch (err: any) {
+    console.warn(`\nCould not send notification email: ${err.message}`);
+  }
 
   process.exit(0);
 }

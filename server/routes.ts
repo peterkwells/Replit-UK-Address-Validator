@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import type { CouncilTaxAddress, PricePaidTransaction } from "@shared/schema";
+import { spawn } from "child_process";
+import * as fs from "fs";
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -400,6 +402,57 @@ export async function registerRoutes(
   app.get(api.validations.list.path, async (req, res) => {
     const records = await storage.getValidations();
     res.json(records);
+  });
+
+  // Admin: start the council tax import as a detached background process
+  app.post("/api/admin/start-council-tax-import", (req, res) => {
+    const logFile = "/tmp/council_tax_import.log";
+    const isRunning = (() => {
+      try {
+        const pid = fs.readFileSync("/tmp/council_tax_import.pid", "utf8").trim();
+        process.kill(Number(pid), 0);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (isRunning) {
+      return res.json({ status: "already_running", logFile });
+    }
+
+    const out = fs.openSync(logFile, "w");
+    const child = spawn("npx", ["tsx", "server/import-council-tax.ts"], {
+      detached: true,
+      stdio: ["ignore", out, out],
+    });
+    fs.writeFileSync("/tmp/council_tax_import.pid", String(child.pid));
+    child.unref();
+
+    res.json({ status: "started", pid: child.pid, logFile });
+  });
+
+  // Admin: check import progress
+  app.get("/api/admin/import-status", (req, res) => {
+    const logFile = "/tmp/council_tax_import.log";
+    const isRunning = (() => {
+      try {
+        const pid = fs.readFileSync("/tmp/council_tax_import.pid", "utf8").trim();
+        process.kill(Number(pid), 0);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    let tail = "";
+    try {
+      const content = fs.readFileSync(logFile, "utf8");
+      const lines = content.split("\n").filter(Boolean);
+      tail = lines.slice(-20).join("\n");
+    } catch {}
+
+    res.json({ isRunning, tail });
   });
 
   return httpServer;
