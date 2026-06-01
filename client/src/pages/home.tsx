@@ -298,15 +298,15 @@ export default function Home() {
               <CardContent className="pt-6 pb-5 px-6">
                 <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
                   <h3 className="font-semibold text-slate-900">Open Address Data</h3>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-50 text-emerald-700 border-emerald-200">High re-use</Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-700 border-amber-200">Re-use rights disputed</Badge>
                 </div>
                 <p className="text-xs font-medium text-slate-400 mb-3">UK Local Authority Council Tax Address Lists</p>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Address records are sourced from Council Tax address lists published as open data by UK local
-                  authorities. These datasets are released under the Open Government Licence and have been
-                  checked to reduce the risk of third-party intellectual property rights (such as Royal Mail or
-                  Ordnance Survey rights) being embedded in the data — making them among the safest UK address
-                  datasets for free commercial and non-commercial re-use.
+                  authorities under the Open Government Licence. However, Ordnance Survey and GeoPlace have
+                  written to Datadaptive claiming that most of these datasets contain OS/GeoPlace/Royal Mail
+                  intellectual property. The re-use rights for these datasets are currently disputed — see the
+                  OGL exemptions section below for full details.
                 </p>
                 <div className="bg-slate-50 rounded-md p-3 mb-4">
                   <p className="text-xs text-slate-600 leading-relaxed">
@@ -394,12 +394,39 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="flex gap-3">
-                    <span className="font-semibold text-slate-700 shrink-0">Third-party rights.</span>
+                    <span className="font-semibold text-slate-700 shrink-0">Third-party rights — disputed (updated May 2026).</span>
                     <span>
                       The OGL does not cover intellectual property the council is not authorised to license.
-                      Postcodes originate from Royal Mail, but in this context they are administrative
-                      references maintained independently by each council. The datasets were published as
-                      open data by the councils themselves, indicating they have assessed and cleared these rights.
+                      Ordnance Survey and GeoPlace have written to Datadaptive claiming that most of the
+                      council tax datasets contain OS/GeoPlace/Royal Mail intellectual property, because they
+                      believe that councils typically maintain their address lists using Local Land and Property
+                      Gazetteers (LLPGs), which are built on OS-licensed data. OS say that they only consider{" "}
+                      <strong>Leeds, Wigan, and Bradford</strong> councils' data as free of their third-party IP.
+                      For all other councils, OS say re-use without their consent may infringe their rights.
+                      <br /><br />
+                      Datadaptive's Owen Boswarva disputes this position, arguing the councils legitimately
+                      released the data as open data, that OS's legal approach is flawed, and that they have
+                      not provided evidence for some of their statements.
+                      <br /><br />
+                      You can read{" "}
+                      <a
+                        href="https://www.owenboswarva.com/FOI/20260508%20EMF%20OS%20Legal%20re%20Council%20Tax%20address%20datasets.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-slate-700"
+                      >
+                        Ordnance Survey's letter (8 May 2026)
+                      </a>{" "}
+                      and{" "}
+                      <a
+                        href="https://www.owenboswarva.com/blog/post-addr88.htm"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-slate-700"
+                      >
+                        Owen Boswarva's reply (22 May 2026)
+                      </a>{" "}
+                      to form your own view. The dispute is unresolved.
                     </span>
                   </div>
                   <div className="flex gap-3">
