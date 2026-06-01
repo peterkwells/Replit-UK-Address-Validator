@@ -320,7 +320,6 @@ export default function Home() {
                     >
                       Open Government Licence v3.0
                     </a>.
-                    Data compiled by Datadaptive from individual council releases.
                   </p>
                 </div>
                 <a
@@ -403,7 +402,6 @@ export default function Home() {
                   </div>
                   <div className="text-sm text-slate-500 leading-relaxed space-y-3">
                     <p>
-                      The OGL does not cover intellectual property the council is not authorised to license.
                       Ordnance Survey and GeoPlace have written to Datadaptive claiming that most of the
                       council tax datasets contain OS/GeoPlace/Royal Mail intellectual property, because they
                       believe that councils typically maintain their address lists using Local Land and Property
